@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: monitoring-management
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/coldchain}
+    username: ${DB_USER:coldchain}
+    password: ${DB_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: never
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

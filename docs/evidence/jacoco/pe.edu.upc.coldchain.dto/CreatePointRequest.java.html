@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CreatePointRequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ColdChain Sentinel - Monitoring Management</a> &gt; <a href="index.source.html" class="el_package">pe.edu.upc.coldchain.dto</a> &gt; <span class="el_source">CreatePointRequest.java</span></div><h1>CreatePointRequest.java</h1><pre class="source lang-java linenums">package pe.edu.upc.coldchain.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import pe.edu.upc.coldchain.model.PointType;
+
+<span class="fc" id="L9">public record CreatePointRequest(</span>
+        @NotBlank(message = &quot;El código es obligatorio&quot;)
+        @Size(max = 40, message = &quot;El código admite hasta 40 caracteres&quot;)
+        @Pattern(regexp = &quot;[A-Za-z0-9_-]+&quot;, message = &quot;Use letras, números, guion o guion bajo&quot;) String code,
+        @NotBlank(message = &quot;El nombre es obligatorio&quot;)
+        @Size(max = 120, message = &quot;El nombre admite hasta 120 caracteres&quot;) String name,
+        @NotNull(message = &quot;El tipo es obligatorio&quot;) PointType type) { }
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

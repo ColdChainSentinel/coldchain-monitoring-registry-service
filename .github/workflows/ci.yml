@@ -1,0 +1,49 @@
+name: ColdChain Sentinel CI
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Build, lint, tests and coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Compile
+        run: mvn -B -ntp -Dcheckstyle.skip compile
+      - name: Static analysis - Checkstyle
+        run: mvn -B -ntp checkstyle:check
+      - name: Tests, package and coverage gate (70% lines)
+        run: mvn -B -ntp verify
+      - name: Publish reports and executable JAR
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-results-${{ github.run_number }}
+          path: |
+            target/site/jacoco/
+            target/surefire-reports/
+            target/checkstyle-result.xml
+            target/monitoring-management-*.jar
+          if-no-files-found: warn
+      - name: Write summary
+        if: always()
+        run: python3 scripts/ci_summary.py

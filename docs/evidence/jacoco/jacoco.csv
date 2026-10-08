@@ -1,0 +1,11 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+ColdChain Sentinel - Monitoring Management,pe.edu.upc.coldchain.controller,PointController,0,29,0,0,0,7,0,4,0,4
+ColdChain Sentinel - Monitoring Management,pe.edu.upc.coldchain,MonitoringApplication,5,3,0,0,2,1,1,1,1,1
+ColdChain Sentinel - Monitoring Management,pe.edu.upc.coldchain.dto,CreatePointRequest,0,12,0,0,0,1,0,1,0,1
+ColdChain Sentinel - Monitoring Management,pe.edu.upc.coldchain.dto,PointResponse,0,27,0,0,0,2,0,2,0,2
+ColdChain Sentinel - Monitoring Management,pe.edu.upc.coldchain.exception,DuplicateCodeException,0,4,0,0,0,2,0,1,0,1
+ColdChain Sentinel - Monitoring Management,pe.edu.upc.coldchain.exception,PointNotFoundException,0,4,0,0,0,2,0,1,0,1
+ColdChain Sentinel - Monitoring Management,pe.edu.upc.coldchain.exception,ApiExceptionHandler,0,45,0,0,0,10,0,6,0,6
+ColdChain Sentinel - Monitoring Management,pe.edu.upc.coldchain.model,MonitoringPoint,0,27,0,0,0,10,0,6,0,6
+ColdChain Sentinel - Monitoring Management,pe.edu.upc.coldchain.model,PointType,0,15,0,0,0,2,0,1,0,1
+ColdChain Sentinel - Monitoring Management,pe.edu.upc.coldchain.service,PointService,0,64,0,2,0,12,0,5,0,4
