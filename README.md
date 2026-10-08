@@ -1,0 +1,1 @@
+# coldchain-monitoring-registry-service
