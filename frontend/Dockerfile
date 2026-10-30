@@ -1,7 +1,7 @@
 # ==========================================
 # Etapa 1: Build de la SPA con Vite (Builder)
 # ==========================================
-FROM node:22-alpine AS builder
+FROM --platform=$BUILDPLATFORM node:22-alpine AS builder
 
 WORKDIR /app
 

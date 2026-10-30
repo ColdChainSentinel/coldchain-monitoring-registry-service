@@ -1,7 +1,7 @@
 # ==========================================
 # Etapa 1: Build y compilación (Builder)
 # ==========================================
-FROM maven:3.9.11-eclipse-temurin-17 AS builder
+FROM --platform=$BUILDPLATFORM maven:3.9.11-eclipse-temurin-17 AS builder
 
 WORKDIR /build
 
