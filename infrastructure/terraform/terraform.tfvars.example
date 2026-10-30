@@ -1,0 +1,14 @@
+# Copy to terraform.tfvars (ignored by Git) and fill in real values.
+subscription_id       = "00000000-0000-0000-0000-000000000000"
+image_tag             = "<git-commit-sha>"
+alert_email           = "someone@example.com"
+operator_ip_addresses = ["203.0.113.10"]
+
+# Optional: thermal rules per monitoring point UUID (inclusive, Celsius).
+# thermal_rules = {
+#   "00000000-0000-0000-0000-000000000000" = { threshold_min = 2.0, threshold_max = 8.0 }
+# }
+
+# Optional: simulator for demos only (wakes the APIs on every run).
+# simulator_enabled  = true
+# simulator_point_id = "00000000-0000-0000-0000-000000000000"
