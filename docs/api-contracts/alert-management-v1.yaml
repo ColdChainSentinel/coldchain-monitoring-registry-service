@@ -1,0 +1,218 @@
+openapi: 3.0.3
+info:
+  title: ColdChain Sentinel - Alert Management
+  version: 0.1.0
+  description: >-
+    Contrato inicial; negocio pendiente. Evaluación interna HTTP sin broker.
+    Reglas explícitas por UUID configuradas por el equipo; sin límites universales.
+servers:
+  - url: http://localhost:8082
+paths:
+  /api/alerts/evaluate:
+    post:
+      operationId: evaluateMeasurement
+      summary: Evaluar una medición contra la regla del punto
+      description: >-
+        Para el primer procesamiento verifica punto en Registry y regla configurada.
+        min <= temperature <= max no genera alerta. Fuera del intervalo registra
+        alerta OPEN con snapshot de umbrales. Idempotencia por measurementId:
+        mismo payload devuelve el resultado original aun si cambian las reglas;
+        otros datos con el mismo ID devuelven 409. Guarda también resultados sin
+        alerta. Endpoint interno; el emisor no suministra umbrales. En MVP no hay
+        autenticación: no exponer públicamente.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluateMeasurement'
+      responses:
+        '200':
+          description: Evaluación completada, nueva o repetida sin efectos duplicados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Punto inexistente en Registry
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: measurementId ya procesado con otros datos
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: Falta regla térmica del punto; no se crea alerta
+          content:
+            application/problem+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Problem'
+                  - type: object
+                    required: [code]
+                    properties:
+                      code:
+                        type: string
+                        enum: [THERMAL_RULE_NOT_CONFIGURED]
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /api/alerts:
+    get:
+      operationId: listAlerts
+      summary: Consultar alertas por punto
+      description: Array por createdAt ascendente y UUID; vacío si no hay alertas. Sin paginación ni consulta a Registry.
+      parameters:
+        - name: monitoringPointId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Alertas registradas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alert'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /actuator/health:
+    get:
+      operationId: alertsHealth
+      summary: Salud del servicio y su base de datos
+      responses:
+        '200':
+          description: Servicio saludable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '503':
+          description: Servicio no saludable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+components:
+  schemas:
+    EvaluateMeasurement:
+      type: object
+      required: [measurementId, monitoringPointId, temperature, timestamp]
+      properties:
+        measurementId:
+          type: string
+          format: uuid
+          description: UUID de medición persistida en Telemetry; clave idempotente
+        monitoringPointId:
+          type: string
+          format: uuid
+        temperature:
+          type: number
+          description: Decimal finito Celsius; Java BigDecimal
+        timestamp:
+          type: string
+          format: date-time
+          description: RFC 3339 con zona; instante de la medición, no de creación de alerta
+    Alert:
+      type: object
+      required: [id, monitoringPointId, measurementId, temperature, thresholdMin, thresholdMax, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        monitoringPointId:
+          type: string
+          format: uuid
+        measurementId:
+          type: string
+          format: uuid
+        temperature:
+          type: number
+          description: Temperatura medida en Celsius
+        thresholdMin:
+          type: number
+          description: Snapshot de mínimo configurado en Celsius; <= thresholdMax
+        thresholdMax:
+          type: number
+          description: Snapshot de máximo configurado en Celsius
+        status:
+          type: string
+          enum: [OPEN]
+          description: MVP solo registra alertas; cierre y reconocimiento fuera del alcance
+        createdAt:
+          type: string
+          format: date-time
+          description: Generado por el servidor en UTC
+    EvaluationResult:
+      oneOf:
+        - type: object
+          required: [measurementId, outcome, alert]
+          properties:
+            measurementId:
+              type: string
+              format: uuid
+            outcome:
+              type: string
+              enum: [ALERT_CREATED]
+            alert:
+              $ref: '#/components/schemas/Alert'
+        - type: object
+          required: [measurementId, outcome]
+          properties:
+            measurementId:
+              type: string
+              format: uuid
+            outcome:
+              type: string
+              enum: [NO_ALERT]
+    Problem:
+      type: object
+      required: [title, status, detail]
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri-reference
+        fields:
+          type: object
+          additionalProperties:
+            type: string
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          example: UP
+  responses:
+    BadRequest:
+      description: JSON, UUID, decimal o fecha inválidos, o campos obligatorios ausentes
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unavailable:
+      description: Registry o almacenamiento no disponibles
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'

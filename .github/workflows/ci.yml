@@ -18,6 +18,9 @@ jobs:
     name: Build, lint, tests and coverage
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: services/monitoring-registry
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,10 +42,10 @@ jobs:
         with:
           name: ci-results-${{ github.run_number }}
           path: |
-            target/site/jacoco/
-            target/surefire-reports/
-            target/checkstyle-result.xml
-            target/monitoring-management-*.jar
+            services/monitoring-registry/target/site/jacoco/
+            services/monitoring-registry/target/surefire-reports/
+            services/monitoring-registry/target/checkstyle-result.xml
+            services/monitoring-registry/target/monitoring-management-*.jar
           if-no-files-found: warn
       - name: Write summary
         if: always()

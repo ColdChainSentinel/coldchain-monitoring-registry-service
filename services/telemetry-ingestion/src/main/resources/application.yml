@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: telemetry-ingestion
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/coldchain_telemetry}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+server:
+  port: ${PORT:8081}
+  error:
+    include-message: never
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+coldchain:
+  clients:
+    registry-base-url: ${REGISTRY_BASE_URL:http://localhost:8080}
+    alerts-base-url: ${ALERTS_BASE_URL:http://localhost:8082}

@@ -1,0 +1,158 @@
+openapi: 3.0.3
+info:
+  title: ColdChain Sentinel - Telemetry Ingestion
+  version: 0.1.0
+  description: Contrato inicial; operaciones de negocio pendientes. Temperaturas en Celsius.
+servers:
+  - url: http://localhost:8081
+paths:
+  /api/measurements:
+    post:
+      operationId: createMeasurement
+      summary: Validar punto, persistir medición y solicitar evaluación HTTP
+      description: >-
+        Comprueba existencia del punto en Registry antes de persistir. Una vez
+        guardada devuelve 201 incluso si Alerts falla; evaluationStatus permite
+        distinguir evaluación completada, pendiente o regla ausente. No hay
+        idempotencia de ingesta: reenviar este POST puede crear otra medición.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMeasurement'
+      responses:
+        '201':
+          description: Medición persistida, no garantiza que se haya creado una alerta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Measurement'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Punto inexistente en Registry; no se persiste
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Registry o almacenamiento no disponibles antes de persistir
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    get:
+      operationId: listMeasurements
+      summary: Consultar mediciones por punto
+      description: Array ordenado por timestamp ascendente y UUID; vacío si no hay datos. Sin paginación en MVP.
+      parameters:
+        - name: monitoringPointId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Mediciones almacenadas; no consulta Registry para esta lectura
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Measurement'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '503':
+          description: Almacenamiento no disponible
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /actuator/health:
+    get:
+      operationId: telemetryHealth
+      summary: Salud del servicio y su base de datos
+      responses:
+        '200':
+          description: Servicio saludable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '503':
+          description: Servicio no saludable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+components:
+  schemas:
+    CreateMeasurement:
+      type: object
+      required: [monitoringPointId, temperature, timestamp]
+      properties:
+        monitoringPointId:
+          type: string
+          format: uuid
+          description: UUID real de Monitoring Registry
+        temperature:
+          type: number
+          description: Decimal finito en Celsius; implementación Java BigDecimal. Sin umbral universal.
+          example: 3.75
+        timestamp:
+          type: string
+          format: date-time
+          description: Instante de medición RFC 3339 con zona; persistido y devuelto en UTC
+          example: '2026-10-29T10:00:00Z'
+    Measurement:
+      allOf:
+        - $ref: '#/components/schemas/CreateMeasurement'
+        - type: object
+          required: [id, evaluationStatus]
+          properties:
+            id:
+              type: string
+              format: uuid
+              readOnly: true
+            evaluationStatus:
+              type: string
+              readOnly: true
+              enum: [COMPLETED, PENDING, RULE_NOT_CONFIGURED]
+              description: COMPLETED incluye evaluaciones que no generan alerta
+    Problem:
+      type: object
+      description: Problem Details compatible con Registry; fields opcional para validación
+      required: [title, status, detail]
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri-reference
+        fields:
+          type: object
+          additionalProperties:
+            type: string
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          example: UP
+  responses:
+    BadRequest:
+      description: JSON, UUID, decimal o fecha inválidos, o campos obligatorios ausentes
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'

@@ -1,0 +1,15 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color: #173042;
+  background: #f4f8fa;
+}
+main {
+  max-width: 48rem;
+  margin: 4rem auto;
+  padding: 1.5rem;
+}
+button {
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+}
+li { margin-block: 0.75rem; }

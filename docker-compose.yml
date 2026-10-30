@@ -1,0 +1,3 @@
+# Marcador de la composición futura del monorepo; no ejecutar este archivo vacío.
+# El equipo de infraestructura implementará Compose en su fase.
+# Compose anterior de Registry se conserva en services/monitoring-registry/compose.yml.
