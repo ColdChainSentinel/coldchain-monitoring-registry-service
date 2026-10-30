@@ -23,10 +23,12 @@ locals {
   # environment and its client only accepts an origin without path.
   java_apps = {
     "monitoring-registry" = {
-      port          = 8080
-      database      = "registry"
-      external      = false
-      liveness_path = "/actuator/health"
+      port     = 8080
+      database = "registry"
+      external = false
+      # Registry has no liveness group and /actuator/health includes the DB,
+      # so liveness uses TCP to avoid restarts during database maintenance.
+      liveness_path = ""
       ready_path    = "/actuator/health"
       env           = {}
     }
@@ -128,6 +130,12 @@ resource "azurerm_container_app" "java" {
         name        = "DB_PASSWORD"
         secret_name = "db-password"
       }
+      # B1MS allows ~50 connections; 3 services x 5, doubled during a rollout,
+      # stays below that.
+      env {
+        name  = "SPRING_DATASOURCE_HIKARI_MAXIMUMPOOLSIZE"
+        value = "5"
+      }
 
       dynamic "env" {
         for_each = each.value.env
@@ -139,18 +147,18 @@ resource "azurerm_container_app" "java" {
 
       # Spring Boot needs ~30-60 s on 0.5 vCPU, plus Flyway on first start.
       startup_probe {
-        transport               = "HTTP"
+        transport               = each.value.liveness_path == "" ? "TCP" : "HTTP"
         port                    = each.value.port
-        path                    = each.value.liveness_path
+        path                    = each.value.liveness_path == "" ? null : each.value.liveness_path
         interval_seconds        = 10
         timeout                 = 5
         failure_count_threshold = 18
       }
 
       liveness_probe {
-        transport               = "HTTP"
+        transport               = each.value.liveness_path == "" ? "TCP" : "HTTP"
         port                    = each.value.port
-        path                    = each.value.liveness_path
+        path                    = each.value.liveness_path == "" ? null : each.value.liveness_path
         interval_seconds        = 30
         timeout                 = 5
         failure_count_threshold = 3
