@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
   title: ColdChain Sentinel - Telemetry Ingestion
-  version: 0.1.0
-  description: Contrato inicial; operaciones de negocio pendientes. Temperaturas en Celsius.
+  version: 0.1.1
+  description: API de mediciones. Temperaturas en Celsius. Precisiones técnicas en docs/architecture/telemetry-ingestion.md.
 servers:
   - url: http://localhost:8081
 paths:
@@ -99,12 +99,18 @@ components:
           description: UUID real de Monitoring Registry
         temperature:
           type: number
-          description: Decimal finito en Celsius; implementación Java BigDecimal. Sin umbral universal.
+          description: >-
+            Número JSON finito Celsius (no string); BigDecimal/NUMERIC sin escala fija.
+            Hasta 131072 dígitos enteros y 16383 decimales significativos (capacidad de
+            PostgreSQL), sin redondeo ni límites térmicos universales.
           example: 3.75
         timestamp:
           type: string
           format: date-time
-          description: Instante de medición RFC 3339 con zona; persistido y devuelto en UTC
+          description: >-
+            String RFC 3339 con zona explícita, año 0001-9999, hasta nueve decimales
+            de segundo. Normalizado a UTC y truncado a microsegundos antes de persistir,
+            responder y evaluar. No acepta epoch numérico ni fechas sin zona.
           example: '2026-10-29T10:00:00Z'
     Measurement:
       allOf:
