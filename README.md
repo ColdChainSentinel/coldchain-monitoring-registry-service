@@ -17,13 +17,13 @@ infrastructure/
   terraform/            # Reservado para el equipo
   kubernetes/           # Reservado para el equipo
 tests/
-  acceptance/           # Reservado
+  acceptance/           # HU-04 automatizada + diseños EP03 pendientes
   integration/          # Reservado
 docs/
   architecture/         # Guía de integración y verificación
   api-contracts/        # OpenAPI iniciales versionados
   evidence/             # Evidencias históricas originales
-.github/workflows/      # CI original de Registry, solo rutas adaptadas
+.github/workflows/      # CI de Registry + aceptación HU-04
 docker-compose.yml      # Marcador, no ejecutable
 pom.xml                 # Agregador opcional de los tres proyectos independientes
 ```
@@ -185,3 +185,11 @@ Implementación y verificación de Telemetry: [documentación](docs/architecture
 Implementación y verificación de Alerts: [documentación](docs/architecture/alert-management.md).
 Flujo completo React → servicios → PostgreSQL, reinicios y resultados actuales:
 [integración funcional del MVP](docs/architecture/mvp-integration.md).
+
+## Aceptación automatizada (HU-04)
+
+Desde la raíz: `.\mvnw.cmd -B -ntp -pl services/monitoring-registry -Pacceptance clean verify`.
+Ejecuta los tests actuales de Registry y tres escenarios Cucumber con tablas de datos.
+Reportes y pendientes EP03: [tests/acceptance](tests/acceptance/README.md).
+El workflow independiente `HU-04 Acceptance` conserva el CI original y publica los
+reportes. Su ejecución remota se verificará después de subir la rama.

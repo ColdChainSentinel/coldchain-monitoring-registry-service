@@ -1,0 +1,54 @@
+name: HU-04 Acceptance
+
+on:
+  push:
+    paths:
+      - 'services/monitoring-registry/**'
+      - 'tests/acceptance/**'
+      - 'docs/hu04.feature'
+      - '.github/workflows/acceptance.yml'
+      - '.mvn/**'
+      - 'mvnw*'
+      - 'pom.xml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'services/monitoring-registry/**'
+      - 'tests/acceptance/**'
+      - 'docs/hu04.feature'
+      - '.github/workflows/acceptance.yml'
+      - '.mvn/**'
+      - 'mvnw*'
+      - 'pom.xml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: acceptance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hu04:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Registry tests and HU-04 acceptance
+        run: sh mvnw -B -ntp -pl services/monitoring-registry -Pacceptance clean verify
+      - name: Publish test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hu04-acceptance-${{ github.run_number }}
+          path: |
+            services/monitoring-registry/target/cucumber/
+            services/monitoring-registry/target/surefire-reports/
+            services/monitoring-registry/target/site/jacoco/
+          if-no-files-found: warn
