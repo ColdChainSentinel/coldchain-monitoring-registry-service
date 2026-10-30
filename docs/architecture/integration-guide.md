@@ -111,7 +111,7 @@ no poner tokens ni contraseñas en ellas. Vite dev server no es un servidor de p
   independientes (Java 17); Registry conserva sus archivos Docker anteriores en su
   carpeta. Usar DNS de Compose en URLs internas; `localhost` solo sirve fuera de Docker.
   Gestionar secretos fuera de Git, tres bases y healthchecks/readiness. El archivo raíz
-  `docker-compose.yml` es un marcador vacío, no una composición ejecutable.
+  `docker-compose.yml` ya es una composición ejecutable (ver README, sección Docker Compose).
 - **CI/CD:** el workflow previo de Registry conserva jobs, gate 70%, Checkstyle y
   artefactos; solo se adaptan rutas. Agregar luego jobs por servicio y frontend usando
   los comandos del README. La función incorpora `ci-serverless.yml` para tests y
@@ -149,4 +149,4 @@ documentos actuales. Evidencias e HU-04 permanecen en `docs/` raíz como materia
 histórico, no como resultados de esta ejecución.
 Los scripts/Dockerfile/compose anteriores se conservan junto a Registry. El `.env`
 local anterior no se lee ni mueve: si se usa Compose legado, configurarlo localmente
-en esa carpeta. No ejecutar el Compose raíz vacío ni combinar automáticamente ambos.
+en esa carpeta. No combinar automáticamente el Compose raíz con el legado de Registry.
