@@ -1,8 +1,9 @@
 # ColdChain Sentinel
 
 MVP académico — Agile Software Factories. Monorepo con componentes que se compilan,
-prueban y despliegan independientemente. Incluye un emisor serverless de pruebas;
-**el negocio de mediciones, alertas, dashboard e infraestructura cloud sigue pendiente**.
+prueban y despliegan independientemente. Registry, ingesta/consulta de mediciones y
+evaluación/consulta de alertas y frontend funcional están implementados. El flujo local
+integrado está verificado; **infraestructura y despliegues siguen fuera de esta entrega**.
 
 ## Estructura
 
@@ -38,14 +39,16 @@ El `.env` local previo permanece ignorado en la raíz, sin leerse ni copiarse.
 | Componente | Responsabilidad | Puerto local | Estado |
 |---|---|---:|---|
 | Monitoring Registry | Registrar/listar/consultar puntos UUID | 8080 | Implementado |
-| Telemetry Ingestion | Recibir, validar, almacenar y consultar mediciones | 8081 | Base + contrato |
-| Alert Management | Evaluar reglas por punto y registrar alertas | 8082 | Base + contrato |
-| Frontend | Interfaz web, ahora solo diagnóstico de salud | 5173 | Base React |
+| Telemetry Ingestion | Recibir, validar, almacenar y consultar mediciones | 8081 | Implementado |
+| Alert Management | Evaluar reglas por punto y registrar alertas | 8082 | Implementado |
+| Frontend | Dashboard, puntos, mediciones y alertas por punto | 5173 | Implementado |
 
 Cada servicio es dueño de su base. Sin tablas, entidades ni librerías de negocio
 compartidas. Flujo previsto: frontend → APIs; emisor → Telemetry → Registry (validar
 punto) → Alerts (evaluación HTTP); Alerts → Registry (validar punto). Sin broker,
-gateway, discovery ni caché. No hay llamadas entre servicios implementadas todavía.
+gateway, discovery ni caché. Telemetry ya valida puntos en Registry y solicita evaluación
+a Alerts; mientras este no esté disponible conserva las mediciones con estado PENDING.
+Alerts aplica reglas explícitas por UUID y persiste resultados idempotentes, con o sin alerta.
 
 ## Requisitos
 
@@ -77,8 +80,11 @@ otro servicio para construir uno. JARs: `services/<servicio>/target/`:
 `telemetry-ingestion-0.1.0.jar`, `alert-management-0.1.0.jar`.
 
 Registry mantiene Checkstyle, 20 pruebas y gate JaCoCo de 70% de líneas.
-Cada nuevo servicio tiene tres smoke tests HTTP con puerto aleatorio: salud/probes,
-Swagger/OpenAPI y comprobación de que las rutas de negocio aún no están implementadas.
+Telemetry añade unitarias, persistencia y pruebas HTTP de endpoints/clientes con
+dobles locales de Registry/Alerts. Puede repetirse con PostgreSQL real mediante
+TEST_DB_* sobre una base exclusiva y desechable; ver su README. Alerts añade pruebas
+de reglas, persistencia, endpoints e idempotencia secuencial/concurrente. Para PostgreSQL,
+ejecutar cada servicio por separado con su propia TEST_DB_URL, nunca ambos sobre la misma base.
 Los reportes se generan en `services/<servicio>/target/surefire-reports/`; cobertura
 actual solo en Registry: `target/site/jacoco/index.html` dentro de su carpeta.
 
@@ -92,8 +98,9 @@ npm run build
 npm run dev
 ```
 
-Abrir http://localhost:5173. El botón comprueba los tres `/actuator/health`; si no
-están levantados muestra el fallo, no datos simulados.
+Abrir http://localhost:5173. Permite registrar puntos y mediciones y consultar alertas;
+comprueba salud y muestra errores explícitos si las APIs no están disponibles, sin
+datos simulados. Detalles y capturas: [frontend](frontend/README.md).
 
 ## Variables y arranque local
 
@@ -108,7 +115,8 @@ Bases locales previstas:
 
 `DB_PASSWORD` es requerida, sin contraseña predeterminada. Crear previamente bases y
 usuarios; no compartir credenciales de producción en Git. Maven/Java no leen `.env`
-automáticamente. Las nuevas bases aún no tienen migraciones de dominio.
+automáticamente. Telemetry incluye migración Flyway de mediciones; Alerts incluye
+alertas y evaluaciones, en bases independientes.
 
 PowerShell, ejemplo para Telemetry con una base creada localmente:
 
@@ -120,11 +128,14 @@ $env:DB_PASSWORD=Read-Host 'Contraseña local'
 .\mvnw.cmd spring-boot:run
 ```
 
-URLs de clientes futuros: `REGISTRY_BASE_URL` default `http://localhost:8080` en los
+URLs de clientes: `REGISTRY_BASE_URL` default `http://localhost:8080` en los
 dos nuevos servicios; `ALERTS_BASE_URL` default `http://localhost:8082` en Telemetry.
-No se consumen todavía. No existe configuración de umbrales universal.
+Telemetry ya las consume durante POST. Timeouts opcionales: `HTTP_CONNECT_TIMEOUT=2s`
+y `HTTP_READ_TIMEOUT=5s`. Alerts también consume Registry con esos timeouts. Sin umbrales universales.
+Configurar sus reglas por UUID en un archivo externo mediante `SPRING_CONFIG_ADDITIONAL_LOCATION`;
+Registry no tiene campos térmicos. Ver el [README de Alerts](services/alert-management/README.md).
 
-Demo de los nuevos esqueletos sin PostgreSQL, desde su carpeta:
+Demo de Telemetry/Alerts sin PostgreSQL, desde su carpeta:
 
 ```sh
 sh mvnw spring-boot:test-run -Dspring-boot.run.profiles=smoke
@@ -142,16 +153,18 @@ las variables `VITE_*` son públicas y de compilación, nunca secretos.
 
 ## Contratos y salud
 
-- [Telemetry OpenAPI 0.1.0](docs/api-contracts/telemetry-ingestion-v1.yaml):
+- [Telemetry OpenAPI 0.1.1](docs/api-contracts/telemetry-ingestion-v1.yaml):
   `POST /api/measurements`, `GET /api/measurements?monitoringPointId={uuid}`.
-- [Alerts OpenAPI 0.1.0](docs/api-contracts/alert-management-v1.yaml):
+- [Alerts OpenAPI 0.2.0](docs/api-contracts/alert-management-v1.yaml):
   `POST /api/alerts/evaluate`, `GET /api/alerts?monitoringPointId={uuid}`.
 - Registry implementado: `POST/GET /api/v1/monitoring-points`,
   `GET /api/v1/monitoring-points/{uuid}`. API generada: http://localhost:8080/v3/api-docs.
 - Todos: `/actuator/health`, `/swagger-ui.html`, `/v3/api-docs`.
 - Nuevos servicios además: `/actuator/health/liveness` y `/actuator/health/readiness`.
 
-Los YAML de negocio son contratos de trabajo, no rutas implementadas. Identificadores
+Ambos YAML corresponden a rutas implementadas; Alerts añade el campo opcional `type`
+para clasificar LOW_TEMPERATURE / HIGH_TEMPERATURE sin cambiar el cliente de Telemetry.
+Identificadores
 UUID, temperaturas decimales Celsius, fechas RFC 3339/UTC. Alertas exigen regla
 explícita por punto, fuera del modelo actual de Registry. Consultar semántica de
 errores, idempotencia y evaluación pendiente en la guía, antes de desarrollar.
@@ -163,8 +176,10 @@ límites de responsabilidad, manejo de fallos, probes y entregables para Docker,
 CI/CD, Azure/IaC y testing. Registry conserva su workflow y la contribución
 serverless añade un CI independiente. No se crean imágenes ni recursos cloud nuevos.
 
-Pendientes: negocio Telemetry/Alerts, reglas asignadas por el responsable funcional,
-pruebas reales PostgreSQL y entre servicios, dashboard, seguridad y despliegues.
+Pendientes: reglas asignadas por el responsable funcional,
+aceptación formal del entorno desplegado, seguridad y despliegues. Instrucciones y decisiones
+de Telemetry: [README del servicio](services/telemetry-ingestion/README.md) y
+[documentación](docs/architecture/telemetry-ingestion.md).
 No se debe exponer el MVP públicamente sin controles de acceso acordados.
 
 Resultados de esta entrega: [verificación](docs/architecture/verification.md).

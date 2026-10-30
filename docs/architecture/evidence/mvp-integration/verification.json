@@ -1,0 +1,3475 @@
+{
+  "verifiedAt": "2026-10-30T10:21:16.726576-05:00",
+  "gitHead": "225ee23e5bae2b959594d95344ebd415d7945041",
+  "scope": "documentation and new integration evidence only; existing source code/contracts/infrastructure byte-identical",
+  "tools": {
+    "java": "17.0.21",
+    "maven": "3.9.11",
+    "postgresql": "16.6",
+    "node": "22.22.0",
+    "npm": "10.9.4",
+    "chromium": "156.0.8078.4"
+  },
+  "backendTests": {
+    "H2": {
+      "monitoring-registry": {
+        "tests": 20,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "telemetry-ingestion": {
+        "tests": 93,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "alert-management": {
+        "tests": 93,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "PostgreSQL": {
+      "monitoring-registry": {
+        "tests": 20,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "telemetry-ingestion": {
+        "tests": 93,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "alert-management": {
+        "tests": 93,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    }
+  },
+  "frontend": {
+    "cleanInstall": true,
+    "typecheck": true,
+    "tests": 63,
+    "testFiles": 10,
+    "build": true,
+    "npmAuditReportedVulnerabilities": 0
+  },
+  "contracts": {
+    "documents": [
+      {
+        "service": "monitoring-registry",
+        "source": "actual /v3/api-docs response",
+        "openapi": "3.1.0",
+        "version": "v0"
+      },
+      {
+        "service": "telemetry-ingestion",
+        "source": "docs/api-contracts/telemetry-ingestion-v1.yaml",
+        "openapi": "3.0.3",
+        "version": "0.1.1"
+      },
+      {
+        "service": "alert-management",
+        "source": "docs/api-contracts/alert-management-v1.yaml",
+        "openapi": "3.0.3",
+        "version": "0.2.0"
+      },
+      {
+        "service": "telemetry-ingestion",
+        "source": "actual /v3/api-docs response",
+        "openapi": "3.1.0",
+        "version": "0.1.1"
+      },
+      {
+        "service": "alert-management",
+        "source": "actual /v3/api-docs response",
+        "openapi": "3.1.0",
+        "version": "0.2.0"
+      }
+    ],
+    "responses": 77,
+    "validRequests": 21,
+    "deliberatelyInvalidRequests": 3,
+    "proxyErrorsWithoutApiContract": 9
+  },
+  "runtime": {
+    "date": "2026-10-30T10:13:10-0500",
+    "environment": "isolated local PostgreSQL 16.6, real JARs and Chromium",
+    "databases": {
+      "monitoring-registry": "cc_mvp_registry_9056",
+      "telemetry-ingestion": "cc_mvp_telemetry_9056",
+      "alert-management": "cc_mvp_alerts_9056"
+    },
+    "checks": [
+      "monitoring-registry executable JAR ready with independent PostgreSQL database",
+      "telemetry-ingestion executable JAR ready with independent PostgreSQL database",
+      "alert-management executable JAR ready with independent PostgreSQL database",
+      "real React browser phase: register",
+      "alert-management executable JAR ready with independent PostgreSQL database",
+      "external thermal rule loaded only for Registry UUID 5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+      "real React browser phase: functional",
+      "case temperature=5: original stored result NO_ALERT",
+      "case temperature=9: original stored result ALERT_CREATED",
+      "case temperature=1: original stored result ALERT_CREATED",
+      "case temperature=2: original stored result NO_ALERT",
+      "case temperature=8: original stored result NO_ALERT",
+      "evaluation replay is idempotent; changed payload returns 409",
+      "monitoring-registry: invalid payload 400; direct cross-origin preflight denied 403 (same-origin Vite works)",
+      "telemetry-ingestion: invalid payload 400; direct cross-origin preflight denied 403 (same-origin Vite works)",
+      "alert-management: invalid payload 400; direct cross-origin preflight denied 403 (same-origin Vite works)",
+      "monitoring-registry executable JAR ready with independent PostgreSQL database",
+      "telemetry-ingestion executable JAR ready with independent PostgreSQL database",
+      "alert-management executable JAR ready with independent PostgreSQL database",
+      "real React browser phase: restored",
+      "all point, measurement, alert IDs and values survive restart of three JARs and PostgreSQL",
+      "real React browser phase: pending",
+      "alert-management executable JAR ready with independent PostgreSQL database",
+      "manual retry evaluates once without duplicating ingestion; PENDING remains as documented",
+      "real React browser phase: preview",
+      "real React browser phase: offline",
+      "Registry unavailable: existing evaluation readable, new ingestion/evaluation 503"
+    ],
+    "http": [
+      {
+        "service": "monitoring-registry",
+        "method": "GET",
+        "path": "/api/v1/monitoring-points/5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+          "code": "MVP-INTEGRATION",
+          "name": "Cámara de integración verificada",
+          "type": "ALMACENAMIENTO"
+        }
+      },
+      {
+        "service": "monitoring-registry",
+        "method": "GET",
+        "path": "/api/v1/monitoring-points/974b8c97-53d0-4e2e-b7fb-4a38fe916fbd",
+        "status": 404,
+        "contentType": "application/problem+json",
+        "body": {
+          "type": "about:blank",
+          "title": "Not Found",
+          "status": 404,
+          "detail": "No se encontró el punto de monitoreo",
+          "instance": "/api/v1/monitoring-points/974b8c97-53d0-4e2e-b7fb-4a38fe916fbd"
+        }
+      },
+      {
+        "service": "alert-management",
+        "method": "POST",
+        "path": "/api/alerts/evaluate",
+        "status": 422,
+        "contentType": "application/problem+json",
+        "body": {
+          "type": "about:blank",
+          "title": "Unprocessable Entity",
+          "status": 422,
+          "detail": "El punto de monitoreo no tiene una regla térmica configurada",
+          "instance": "/api/alerts/evaluate",
+          "code": "THERMAL_RULE_NOT_CONFIGURED"
+        },
+        "requestBody": {
+          "measurementId": "ae9b0518-63f1-4b9f-bb8f-0f350db94187",
+          "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+          "temperature": 6,
+          "timestamp": "2026-10-30T15:01:00Z"
+        }
+      },
+      {
+        "service": "alert-management",
+        "method": "POST",
+        "path": "/api/alerts/evaluate",
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "measurementId": "040a547e-7916-499c-a94a-feb5d01cec27",
+          "outcome": "NO_ALERT"
+        },
+        "requestBody": {
+          "measurementId": "040a547e-7916-499c-a94a-feb5d01cec27",
+          "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+          "temperature": 5,
+          "timestamp": "2026-10-30T15:02:00Z"
+        }
+      },
+      {
+        "service": "alert-management",
+        "method": "POST",
+        "path": "/api/alerts/evaluate",
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "measurementId": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+          "outcome": "ALERT_CREATED",
+          "alert": {
+            "id": "e70ad718-dbcd-42d6-9b6b-55a9acf41639",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "measurementId": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+            "temperature": 9,
+            "thresholdMin": 2,
+            "thresholdMax": 8,
+            "status": "OPEN",
+            "createdAt": "2026-10-30T15:14:22.273910Z",
+            "type": "HIGH_TEMPERATURE"
+          }
+        },
+        "requestBody": {
+          "measurementId": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+          "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+          "temperature": 9,
+          "timestamp": "2026-10-30T15:03:00Z"
+        }
+      },
+      {
+        "service": "alert-management",
+        "method": "POST",
+        "path": "/api/alerts/evaluate",
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "measurementId": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+          "outcome": "ALERT_CREATED",
+          "alert": {
+            "id": "1be9d61e-e80c-492e-88e8-e569eab9717a",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "measurementId": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+            "temperature": 1,
+            "thresholdMin": 2,
+            "thresholdMax": 8,
+            "status": "OPEN",
+            "createdAt": "2026-10-30T15:14:22.499384Z",
+            "type": "LOW_TEMPERATURE"
+          }
+        },
+        "requestBody": {
+          "measurementId": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+          "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+          "temperature": 1,
+          "timestamp": "2026-10-30T15:04:00Z"
+        }
+      },
+      {
+        "service": "alert-management",
+        "method": "POST",
+        "path": "/api/alerts/evaluate",
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "measurementId": "5c9f6f04-458d-4c40-9588-c63fa8ee9ac5",
+          "outcome": "NO_ALERT"
+        },
+        "requestBody": {
+          "measurementId": "5c9f6f04-458d-4c40-9588-c63fa8ee9ac5",
+          "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+          "temperature": 2,
+          "timestamp": "2026-10-30T15:05:00Z"
+        }
+      },
+      {
+        "service": "alert-management",
+        "method": "POST",
+        "path": "/api/alerts/evaluate",
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "measurementId": "22c129b5-73cb-40b3-a3b3-d4cf04026f96",
+          "outcome": "NO_ALERT"
+        },
+        "requestBody": {
+          "measurementId": "22c129b5-73cb-40b3-a3b3-d4cf04026f96",
+          "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+          "temperature": 8,
+          "timestamp": "2026-10-30T15:06:00Z"
+        }
+      },
+      {
+        "service": "alert-management",
+        "method": "POST",
+        "path": "/api/alerts/evaluate",
+        "status": 409,
+        "contentType": "application/problem+json",
+        "body": {
+          "type": "about:blank",
+          "title": "Conflict",
+          "status": 409,
+          "detail": "measurementId ya fue procesado con otros datos",
+          "instance": "/api/alerts/evaluate"
+        },
+        "requestBody": {
+          "measurementId": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+          "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+          "temperature": 10,
+          "timestamp": "2026-10-30T15:03:00Z"
+        }
+      },
+      {
+        "service": "monitoring-registry",
+        "method": "POST",
+        "path": "/api/v1/monitoring-points",
+        "status": 400,
+        "contentType": "application/problem+json",
+        "body": {
+          "type": "about:blank",
+          "title": "Bad Request",
+          "status": 400,
+          "detail": "Datos inválidos",
+          "instance": "/api/v1/monitoring-points",
+          "fields": {
+            "code": "El código es obligatorio",
+            "name": "El nombre es obligatorio",
+            "type": "El tipo es obligatorio"
+          }
+        },
+        "requestBody": {}
+      },
+      {
+        "service": "monitoring-registry",
+        "method": "OPTIONS",
+        "path": "/api/v1/monitoring-points",
+        "status": 403,
+        "contentType": null,
+        "body": "Invalid CORS request",
+        "allowOrigin": null
+      },
+      {
+        "service": "telemetry-ingestion",
+        "method": "POST",
+        "path": "/api/measurements",
+        "status": 400,
+        "contentType": "application/problem+json",
+        "body": {
+          "type": "about:blank",
+          "title": "Bad Request",
+          "status": 400,
+          "detail": "Datos inválidos",
+          "instance": "/api/measurements",
+          "fields": {
+            "monitoringPointId": "El punto de monitoreo es obligatorio",
+            "temperature": "La temperatura es obligatoria",
+            "timestamp": "La fecha de medición es obligatoria"
+          }
+        },
+        "requestBody": {}
+      },
+      {
+        "service": "telemetry-ingestion",
+        "method": "OPTIONS",
+        "path": "/api/measurements",
+        "status": 403,
+        "contentType": null,
+        "body": "Invalid CORS request",
+        "allowOrigin": null
+      },
+      {
+        "service": "alert-management",
+        "method": "POST",
+        "path": "/api/alerts/evaluate",
+        "status": 400,
+        "contentType": "application/problem+json",
+        "body": {
+          "type": "about:blank",
+          "title": "Bad Request",
+          "status": 400,
+          "detail": "Datos inválidos",
+          "instance": "/api/alerts/evaluate",
+          "fields": {
+            "measurementId": "El identificador de medición es obligatorio",
+            "monitoringPointId": "El punto de monitoreo es obligatorio",
+            "temperature": "La temperatura es obligatoria",
+            "timestamp": "La fecha de medición es obligatoria"
+          }
+        },
+        "requestBody": {}
+      },
+      {
+        "service": "alert-management",
+        "method": "OPTIONS",
+        "path": "/api/alerts/evaluate",
+        "status": 403,
+        "contentType": null,
+        "body": "Invalid CORS request",
+        "allowOrigin": null
+      },
+      {
+        "service": "monitoring-registry",
+        "method": "GET",
+        "path": "/v3/api-docs",
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "openapi": "3.1.0",
+          "info": {
+            "title": "OpenAPI definition",
+            "version": "v0"
+          },
+          "servers": [
+            {
+              "url": "http://127.0.0.1:8080",
+              "description": "Generated server url"
+            }
+          ],
+          "paths": {
+            "/api/v1/monitoring-points": {
+              "get": {
+                "tags": [
+                  "point-controller"
+                ],
+                "summary": "Listar puntos ordenados por código",
+                "operationId": "list",
+                "responses": {
+                  "200": {
+                    "description": "OK",
+                    "content": {
+                      "*/*": {
+                        "schema": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/PointResponse"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "post": {
+                "tags": [
+                  "point-controller"
+                ],
+                "summary": "Registrar un punto de monitoreo (HU-04)",
+                "operationId": "create",
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/CreatePointRequest"
+                      }
+                    }
+                  },
+                  "required": true
+                },
+                "responses": {
+                  "200": {
+                    "description": "OK",
+                    "content": {
+                      "*/*": {
+                        "schema": {
+                          "$ref": "#/components/schemas/PointResponse"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/api/v1/monitoring-points/{id}": {
+              "get": {
+                "tags": [
+                  "point-controller"
+                ],
+                "summary": "Consultar un punto por UUID",
+                "operationId": "find",
+                "parameters": [
+                  {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "OK",
+                    "content": {
+                      "*/*": {
+                        "schema": {
+                          "$ref": "#/components/schemas/PointResponse"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "components": {
+            "schemas": {
+              "CreatePointRequest": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "maxLength": 40,
+                    "minLength": 0,
+                    "pattern": "[A-Za-z0-9_-]+"
+                  },
+                  "name": {
+                    "type": "string",
+                    "maxLength": 120,
+                    "minLength": 0
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "ALMACENAMIENTO",
+                      "TRANSPORTE"
+                    ]
+                  }
+                },
+                "required": [
+                  "code",
+                  "name",
+                  "type"
+                ]
+              },
+              "PointResponse": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "ALMACENAMIENTO",
+                      "TRANSPORTE"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "service": "monitoring-registry",
+        "method": "GET",
+        "path": "/actuator/health",
+        "status": 200,
+        "contentType": "application/vnd.spring-boot.actuator.v3+json",
+        "body": {
+          "status": "UP"
+        }
+      },
+      {
+        "service": "telemetry-ingestion",
+        "method": "GET",
+        "path": "/v3/api-docs",
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "openapi": "3.1.0",
+          "info": {
+            "title": "ColdChain Sentinel - Telemetry Ingestion",
+            "version": "0.1.1"
+          },
+          "servers": [
+            {
+              "url": "http://127.0.0.1:8081",
+              "description": "Generated server url"
+            }
+          ],
+          "paths": {
+            "/api/measurements": {
+              "get": {
+                "tags": [
+                  "measurement-controller"
+                ],
+                "summary": "Consultar mediciones por punto ordenadas por fecha y UUID",
+                "operationId": "listMeasurements",
+                "parameters": [
+                  {
+                    "name": "monitoringPointId",
+                    "in": "query",
+                    "required": true,
+                    "schema": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Array, vacío si no hay datos",
+                    "content": {
+                      "*/*": {
+                        "schema": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/MeasurementResponse"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "400": {
+                    "description": "UUID inválido o ausente",
+                    "content": {
+                      "application/problem+json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/ProblemDetail"
+                        }
+                      }
+                    }
+                  },
+                  "503": {
+                    "description": "Almacenamiento no disponible",
+                    "content": {
+                      "application/problem+json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/ProblemDetail"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "post": {
+                "tags": [
+                  "measurement-controller"
+                ],
+                "summary": "Registrar una medición y solicitar evaluación HTTP",
+                "operationId": "createMeasurement",
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/CreateMeasurementRequest"
+                      }
+                    }
+                  },
+                  "required": true
+                },
+                "responses": {
+                  "201": {
+                    "description": "Medición persistida; revisar evaluationStatus",
+                    "content": {
+                      "*/*": {
+                        "schema": {
+                          "$ref": "#/components/schemas/MeasurementResponse"
+                        }
+                      }
+                    }
+                  },
+                  "400": {
+                    "description": "Datos inválidos",
+                    "content": {
+                      "application/problem+json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/ProblemDetail"
+                        }
+                      }
+                    }
+                  },
+                  "404": {
+                    "description": "Punto inexistente",
+                    "content": {
+                      "application/problem+json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/ProblemDetail"
+                        }
+                      }
+                    }
+                  },
+                  "503": {
+                    "description": "Registry o almacenamiento no disponibles",
+                    "content": {
+                      "application/problem+json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/ProblemDetail"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "components": {
+            "schemas": {
+              "CreateMeasurementRequest": {
+                "type": "object",
+                "properties": {
+                  "monitoringPointId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "temperature": {
+                    "type": "string",
+                    "description": "Número JSON Celsius; sin umbral térmico universal"
+                  },
+                  "timestamp": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "RFC 3339 con zona; normalizado a microsegundos UTC"
+                  }
+                },
+                "required": [
+                  "monitoringPointId",
+                  "temperature",
+                  "timestamp"
+                ]
+              },
+              "ProblemDetail": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "title": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "status": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "detail": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "instance": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uri"
+                  },
+                  "properties": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "additionalProperties": {}
+                  }
+                }
+              },
+              "MeasurementResponse": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "monitoringPointId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "temperature": {
+                    "type": "number"
+                  },
+                  "timestamp": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "evaluationStatus": {
+                    "type": "string",
+                    "enum": [
+                      "COMPLETED",
+                      "PENDING",
+                      "RULE_NOT_CONFIGURED"
+                    ]
+                  }
+                },
+                "required": [
+                  "evaluationStatus",
+                  "id",
+                  "monitoringPointId",
+                  "temperature",
+                  "timestamp"
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        "service": "telemetry-ingestion",
+        "method": "GET",
+        "path": "/actuator/health",
+        "status": 200,
+        "contentType": "application/vnd.spring-boot.actuator.v3+json",
+        "body": {
+          "status": "UP",
+          "groups": [
+            "liveness",
+            "readiness"
+          ]
+        }
+      },
+      {
+        "service": "alert-management",
+        "method": "GET",
+        "path": "/v3/api-docs",
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "openapi": "3.1.0",
+          "info": {
+            "title": "ColdChain Sentinel - Alert Management",
+            "version": "0.2.0"
+          },
+          "servers": [
+            {
+              "url": "http://127.0.0.1:8082",
+              "description": "Generated server url"
+            }
+          ],
+          "paths": {
+            "/api/alerts/evaluate": {
+              "post": {
+                "tags": [
+                  "alert-controller"
+                ],
+                "summary": "Evaluar medición de forma idempotente contra regla del punto",
+                "operationId": "evaluateMeasurement",
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/EvaluateMeasurementRequest"
+                      }
+                    }
+                  },
+                  "required": true
+                },
+                "responses": {
+                  "200": {
+                    "description": "Resultado original de evaluación, con o sin alerta",
+                    "content": {
+                      "*/*": {
+                        "schema": {
+                          "$ref": "#/components/schemas/EvaluationResponse"
+                        }
+                      }
+                    }
+                  },
+                  "400": {
+                    "description": "Datos inválidos",
+                    "content": {
+                      "application/problem+json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/ProblemDetail"
+                        }
+                      }
+                    }
+                  },
+                  "404": {
+                    "description": "Punto inexistente",
+                    "content": {
+                      "application/problem+json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/ProblemDetail"
+                        }
+                      }
+                    }
+                  },
+                  "409": {
+                    "description": "measurementId reutilizado con otros datos",
+                    "content": {
+                      "application/problem+json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/ProblemDetail"
+                        }
+                      }
+                    }
+                  },
+                  "422": {
+                    "description": "THERMAL_RULE_NOT_CONFIGURED",
+                    "content": {
+                      "application/problem+json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/ProblemDetail"
+                        }
+                      }
+                    }
+                  },
+                  "503": {
+                    "description": "Registry o almacenamiento no disponibles",
+                    "content": {
+                      "application/problem+json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/ProblemDetail"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/api/alerts": {
+              "get": {
+                "tags": [
+                  "alert-controller"
+                ],
+                "summary": "Consultar alertas por punto, ordenadas por fecha y UUID",
+                "operationId": "listAlerts",
+                "parameters": [
+                  {
+                    "name": "monitoringPointId",
+                    "in": "query",
+                    "required": true,
+                    "schema": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Array, vacío si no hay alertas",
+                    "content": {
+                      "*/*": {
+                        "schema": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/AlertResponse"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "400": {
+                    "description": "UUID inválido o ausente",
+                    "content": {
+                      "application/problem+json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/ProblemDetail"
+                        }
+                      }
+                    }
+                  },
+                  "503": {
+                    "description": "Almacenamiento no disponible",
+                    "content": {
+                      "application/problem+json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/ProblemDetail"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "components": {
+            "schemas": {
+              "EvaluateMeasurementRequest": {
+                "type": "object",
+                "properties": {
+                  "measurementId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "monitoringPointId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "temperature": {
+                    "type": "string",
+                    "description": "Número JSON Celsius, no string"
+                  },
+                  "timestamp": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "RFC 3339 con zona; UTC a microsegundos"
+                  }
+                },
+                "required": [
+                  "measurementId",
+                  "monitoringPointId",
+                  "temperature",
+                  "timestamp"
+                ]
+              },
+              "ProblemDetail": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "title": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "status": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "detail": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "instance": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uri"
+                  },
+                  "properties": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "additionalProperties": {}
+                  }
+                }
+              },
+              "AlertResponse": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "monitoringPointId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "measurementId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "temperature": {
+                    "type": "number"
+                  },
+                  "thresholdMin": {
+                    "type": "number"
+                  },
+                  "thresholdMax": {
+                    "type": "number"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "OPEN"
+                    ]
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "LOW_TEMPERATURE",
+                      "HIGH_TEMPERATURE"
+                    ],
+                    "readOnly": true
+                  }
+                },
+                "required": [
+                  "createdAt",
+                  "id",
+                  "measurementId",
+                  "monitoringPointId",
+                  "status",
+                  "temperature",
+                  "thresholdMax",
+                  "thresholdMin"
+                ]
+              },
+              "EvaluationResponse": {
+                "type": "object",
+                "properties": {
+                  "measurementId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "outcome": {
+                    "type": "string",
+                    "enum": [
+                      "NO_ALERT",
+                      "ALERT_CREATED"
+                    ]
+                  },
+                  "alert": {
+                    "$ref": "#/components/schemas/AlertResponse"
+                  }
+                },
+                "required": [
+                  "measurementId",
+                  "outcome"
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        "service": "alert-management",
+        "method": "GET",
+        "path": "/actuator/health",
+        "status": 200,
+        "contentType": "application/vnd.spring-boot.actuator.v3+json",
+        "body": {
+          "status": "UP",
+          "groups": [
+            "liveness",
+            "readiness"
+          ]
+        }
+      },
+      {
+        "service": "monitoring-registry",
+        "method": "GET",
+        "path": "/api/v1/monitoring-points",
+        "status": 200,
+        "contentType": "application/json",
+        "body": [
+          {
+            "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "code": "MVP-INTEGRATION",
+            "name": "Cámara de integración verificada",
+            "type": "ALMACENAMIENTO"
+          }
+        ]
+      },
+      {
+        "service": "telemetry-ingestion",
+        "method": "GET",
+        "path": "/api/measurements?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+        "status": 200,
+        "contentType": "application/json",
+        "body": [
+          {
+            "id": "ae9b0518-63f1-4b9f-bb8f-0f350db94187",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 6,
+            "timestamp": "2026-10-30T15:01:00Z",
+            "evaluationStatus": "RULE_NOT_CONFIGURED"
+          },
+          {
+            "id": "040a547e-7916-499c-a94a-feb5d01cec27",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 5,
+            "timestamp": "2026-10-30T15:02:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 9,
+            "timestamp": "2026-10-30T15:03:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 1,
+            "timestamp": "2026-10-30T15:04:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "5c9f6f04-458d-4c40-9588-c63fa8ee9ac5",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 2,
+            "timestamp": "2026-10-30T15:05:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "22c129b5-73cb-40b3-a3b3-d4cf04026f96",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 8,
+            "timestamp": "2026-10-30T15:06:00Z",
+            "evaluationStatus": "COMPLETED"
+          }
+        ]
+      },
+      {
+        "service": "alert-management",
+        "method": "GET",
+        "path": "/api/alerts?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+        "status": 200,
+        "contentType": "application/json",
+        "body": [
+          {
+            "id": "e70ad718-dbcd-42d6-9b6b-55a9acf41639",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "measurementId": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+            "temperature": 9,
+            "thresholdMin": 2,
+            "thresholdMax": 8,
+            "status": "OPEN",
+            "createdAt": "2026-10-30T15:14:22.273910Z",
+            "type": "HIGH_TEMPERATURE"
+          },
+          {
+            "id": "1be9d61e-e80c-492e-88e8-e569eab9717a",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "measurementId": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+            "temperature": 1,
+            "thresholdMin": 2,
+            "thresholdMax": 8,
+            "status": "OPEN",
+            "createdAt": "2026-10-30T15:14:22.499384Z",
+            "type": "LOW_TEMPERATURE"
+          }
+        ]
+      },
+      {
+        "service": "monitoring-registry",
+        "method": "GET",
+        "path": "/api/v1/monitoring-points",
+        "status": 200,
+        "contentType": "application/json",
+        "body": [
+          {
+            "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "code": "MVP-INTEGRATION",
+            "name": "Cámara de integración verificada",
+            "type": "ALMACENAMIENTO"
+          }
+        ]
+      },
+      {
+        "service": "telemetry-ingestion",
+        "method": "GET",
+        "path": "/api/measurements?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+        "status": 200,
+        "contentType": "application/json",
+        "body": [
+          {
+            "id": "ae9b0518-63f1-4b9f-bb8f-0f350db94187",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 6,
+            "timestamp": "2026-10-30T15:01:00Z",
+            "evaluationStatus": "RULE_NOT_CONFIGURED"
+          },
+          {
+            "id": "040a547e-7916-499c-a94a-feb5d01cec27",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 5,
+            "timestamp": "2026-10-30T15:02:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 9,
+            "timestamp": "2026-10-30T15:03:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 1,
+            "timestamp": "2026-10-30T15:04:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "5c9f6f04-458d-4c40-9588-c63fa8ee9ac5",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 2,
+            "timestamp": "2026-10-30T15:05:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "22c129b5-73cb-40b3-a3b3-d4cf04026f96",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 8,
+            "timestamp": "2026-10-30T15:06:00Z",
+            "evaluationStatus": "COMPLETED"
+          }
+        ]
+      },
+      {
+        "service": "alert-management",
+        "method": "GET",
+        "path": "/api/alerts?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+        "status": 200,
+        "contentType": "application/json",
+        "body": [
+          {
+            "id": "e70ad718-dbcd-42d6-9b6b-55a9acf41639",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "measurementId": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+            "temperature": 9,
+            "thresholdMin": 2,
+            "thresholdMax": 8,
+            "status": "OPEN",
+            "createdAt": "2026-10-30T15:14:22.273910Z",
+            "type": "HIGH_TEMPERATURE"
+          },
+          {
+            "id": "1be9d61e-e80c-492e-88e8-e569eab9717a",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "measurementId": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+            "temperature": 1,
+            "thresholdMin": 2,
+            "thresholdMax": 8,
+            "status": "OPEN",
+            "createdAt": "2026-10-30T15:14:22.499384Z",
+            "type": "LOW_TEMPERATURE"
+          }
+        ]
+      },
+      {
+        "service": "alert-management",
+        "method": "POST",
+        "path": "/api/alerts/evaluate",
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "measurementId": "87c89cda-d434-4b23-b59a-50b86f655ad2",
+          "outcome": "ALERT_CREATED",
+          "alert": {
+            "id": "b044d8eb-e9b8-48fe-95ca-2bc68a08c2ff",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "measurementId": "87c89cda-d434-4b23-b59a-50b86f655ad2",
+            "temperature": 30.0,
+            "thresholdMin": 2,
+            "thresholdMax": 8,
+            "status": "OPEN",
+            "createdAt": "2026-10-30T15:15:27.775826Z",
+            "type": "HIGH_TEMPERATURE"
+          }
+        },
+        "requestBody": {
+          "measurementId": "87c89cda-d434-4b23-b59a-50b86f655ad2",
+          "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+          "temperature": 30,
+          "timestamp": "2026-10-30T15:07:00Z"
+        }
+      },
+      {
+        "service": "alert-management",
+        "method": "POST",
+        "path": "/api/alerts/evaluate",
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "measurementId": "87c89cda-d434-4b23-b59a-50b86f655ad2",
+          "outcome": "ALERT_CREATED",
+          "alert": {
+            "id": "b044d8eb-e9b8-48fe-95ca-2bc68a08c2ff",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "measurementId": "87c89cda-d434-4b23-b59a-50b86f655ad2",
+            "temperature": 30,
+            "thresholdMin": 2,
+            "thresholdMax": 8,
+            "status": "OPEN",
+            "createdAt": "2026-10-30T15:15:27.775826Z",
+            "type": "HIGH_TEMPERATURE"
+          }
+        },
+        "requestBody": {
+          "measurementId": "87c89cda-d434-4b23-b59a-50b86f655ad2",
+          "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+          "temperature": 30,
+          "timestamp": "2026-10-30T15:07:00Z"
+        }
+      },
+      {
+        "service": "monitoring-registry",
+        "method": "GET",
+        "path": "/api/v1/monitoring-points",
+        "status": 200,
+        "contentType": "application/json",
+        "body": [
+          {
+            "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "code": "MVP-INTEGRATION",
+            "name": "Cámara de integración verificada",
+            "type": "ALMACENAMIENTO"
+          }
+        ]
+      },
+      {
+        "service": "telemetry-ingestion",
+        "method": "GET",
+        "path": "/api/measurements?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+        "status": 200,
+        "contentType": "application/json",
+        "body": [
+          {
+            "id": "ae9b0518-63f1-4b9f-bb8f-0f350db94187",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 6,
+            "timestamp": "2026-10-30T15:01:00Z",
+            "evaluationStatus": "RULE_NOT_CONFIGURED"
+          },
+          {
+            "id": "040a547e-7916-499c-a94a-feb5d01cec27",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 5,
+            "timestamp": "2026-10-30T15:02:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 9,
+            "timestamp": "2026-10-30T15:03:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 1,
+            "timestamp": "2026-10-30T15:04:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "5c9f6f04-458d-4c40-9588-c63fa8ee9ac5",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 2,
+            "timestamp": "2026-10-30T15:05:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "22c129b5-73cb-40b3-a3b3-d4cf04026f96",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 8,
+            "timestamp": "2026-10-30T15:06:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "87c89cda-d434-4b23-b59a-50b86f655ad2",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 30,
+            "timestamp": "2026-10-30T15:07:00Z",
+            "evaluationStatus": "PENDING"
+          }
+        ]
+      },
+      {
+        "service": "alert-management",
+        "method": "GET",
+        "path": "/api/alerts?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+        "status": 200,
+        "contentType": "application/json",
+        "body": [
+          {
+            "id": "e70ad718-dbcd-42d6-9b6b-55a9acf41639",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "measurementId": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+            "temperature": 9,
+            "thresholdMin": 2,
+            "thresholdMax": 8,
+            "status": "OPEN",
+            "createdAt": "2026-10-30T15:14:22.273910Z",
+            "type": "HIGH_TEMPERATURE"
+          },
+          {
+            "id": "1be9d61e-e80c-492e-88e8-e569eab9717a",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "measurementId": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+            "temperature": 1,
+            "thresholdMin": 2,
+            "thresholdMax": 8,
+            "status": "OPEN",
+            "createdAt": "2026-10-30T15:14:22.499384Z",
+            "type": "LOW_TEMPERATURE"
+          },
+          {
+            "id": "b044d8eb-e9b8-48fe-95ca-2bc68a08c2ff",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "measurementId": "87c89cda-d434-4b23-b59a-50b86f655ad2",
+            "temperature": 30,
+            "thresholdMin": 2,
+            "thresholdMax": 8,
+            "status": "OPEN",
+            "createdAt": "2026-10-30T15:15:27.775826Z",
+            "type": "HIGH_TEMPERATURE"
+          }
+        ]
+      },
+      {
+        "service": "alert-management",
+        "method": "POST",
+        "path": "/api/alerts/evaluate",
+        "status": 200,
+        "contentType": "application/json",
+        "body": {
+          "measurementId": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+          "outcome": "ALERT_CREATED",
+          "alert": {
+            "id": "e70ad718-dbcd-42d6-9b6b-55a9acf41639",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "measurementId": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+            "temperature": 9,
+            "thresholdMin": 2,
+            "thresholdMax": 8,
+            "status": "OPEN",
+            "createdAt": "2026-10-30T15:14:22.273910Z",
+            "type": "HIGH_TEMPERATURE"
+          }
+        },
+        "requestBody": {
+          "measurementId": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+          "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+          "temperature": 9,
+          "timestamp": "2026-10-30T15:03:00Z"
+        }
+      },
+      {
+        "service": "alert-management",
+        "method": "POST",
+        "path": "/api/alerts/evaluate",
+        "status": 503,
+        "contentType": "application/problem+json",
+        "body": {
+          "type": "about:blank",
+          "title": "Service Unavailable",
+          "status": 503,
+          "detail": "Monitoring Registry no está disponible para validar el punto",
+          "instance": "/api/alerts/evaluate"
+        },
+        "requestBody": {
+          "measurementId": "7b141881-f27b-4eb4-9606-d3b5be6d0726",
+          "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+          "temperature": 30,
+          "timestamp": "2026-10-30T10:00:00Z"
+        }
+      },
+      {
+        "service": "telemetry-ingestion",
+        "method": "POST",
+        "path": "/api/measurements",
+        "status": 503,
+        "contentType": "application/problem+json",
+        "body": {
+          "type": "about:blank",
+          "title": "Service Unavailable",
+          "status": 503,
+          "detail": "Monitoring Registry no está disponible para validar el punto",
+          "instance": "/api/measurements"
+        },
+        "requestBody": {
+          "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+          "temperature": 30,
+          "timestamp": "2026-10-30T10:00:00Z"
+        }
+      }
+    ],
+    "snapshots": {
+      "beforeRestart": {
+        "points": [
+          {
+            "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "code": "MVP-INTEGRATION",
+            "name": "Cámara de integración verificada",
+            "type": "ALMACENAMIENTO"
+          }
+        ],
+        "measurements": [
+          {
+            "id": "ae9b0518-63f1-4b9f-bb8f-0f350db94187",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 6,
+            "timestamp": "2026-10-30T15:01:00Z",
+            "evaluationStatus": "RULE_NOT_CONFIGURED"
+          },
+          {
+            "id": "040a547e-7916-499c-a94a-feb5d01cec27",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 5,
+            "timestamp": "2026-10-30T15:02:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 9,
+            "timestamp": "2026-10-30T15:03:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 1,
+            "timestamp": "2026-10-30T15:04:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "5c9f6f04-458d-4c40-9588-c63fa8ee9ac5",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 2,
+            "timestamp": "2026-10-30T15:05:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "22c129b5-73cb-40b3-a3b3-d4cf04026f96",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 8,
+            "timestamp": "2026-10-30T15:06:00Z",
+            "evaluationStatus": "COMPLETED"
+          }
+        ],
+        "alerts": [
+          {
+            "id": "e70ad718-dbcd-42d6-9b6b-55a9acf41639",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "measurementId": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+            "temperature": 9,
+            "thresholdMin": 2,
+            "thresholdMax": 8,
+            "status": "OPEN",
+            "createdAt": "2026-10-30T15:14:22.273910Z",
+            "type": "HIGH_TEMPERATURE"
+          },
+          {
+            "id": "1be9d61e-e80c-492e-88e8-e569eab9717a",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "measurementId": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+            "temperature": 1,
+            "thresholdMin": 2,
+            "thresholdMax": 8,
+            "status": "OPEN",
+            "createdAt": "2026-10-30T15:14:22.499384Z",
+            "type": "LOW_TEMPERATURE"
+          }
+        ]
+      },
+      "afterRestart": {
+        "points": [
+          {
+            "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "code": "MVP-INTEGRATION",
+            "name": "Cámara de integración verificada",
+            "type": "ALMACENAMIENTO"
+          }
+        ],
+        "measurements": [
+          {
+            "id": "ae9b0518-63f1-4b9f-bb8f-0f350db94187",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 6,
+            "timestamp": "2026-10-30T15:01:00Z",
+            "evaluationStatus": "RULE_NOT_CONFIGURED"
+          },
+          {
+            "id": "040a547e-7916-499c-a94a-feb5d01cec27",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 5,
+            "timestamp": "2026-10-30T15:02:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 9,
+            "timestamp": "2026-10-30T15:03:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 1,
+            "timestamp": "2026-10-30T15:04:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "5c9f6f04-458d-4c40-9588-c63fa8ee9ac5",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 2,
+            "timestamp": "2026-10-30T15:05:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "22c129b5-73cb-40b3-a3b3-d4cf04026f96",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 8,
+            "timestamp": "2026-10-30T15:06:00Z",
+            "evaluationStatus": "COMPLETED"
+          }
+        ],
+        "alerts": [
+          {
+            "id": "e70ad718-dbcd-42d6-9b6b-55a9acf41639",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "measurementId": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+            "temperature": 9,
+            "thresholdMin": 2,
+            "thresholdMax": 8,
+            "status": "OPEN",
+            "createdAt": "2026-10-30T15:14:22.273910Z",
+            "type": "HIGH_TEMPERATURE"
+          },
+          {
+            "id": "1be9d61e-e80c-492e-88e8-e569eab9717a",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "measurementId": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+            "temperature": 1,
+            "thresholdMin": 2,
+            "thresholdMax": 8,
+            "status": "OPEN",
+            "createdAt": "2026-10-30T15:14:22.499384Z",
+            "type": "LOW_TEMPERATURE"
+          }
+        ]
+      },
+      "afterRecovery": {
+        "points": [
+          {
+            "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "code": "MVP-INTEGRATION",
+            "name": "Cámara de integración verificada",
+            "type": "ALMACENAMIENTO"
+          }
+        ],
+        "measurements": [
+          {
+            "id": "ae9b0518-63f1-4b9f-bb8f-0f350db94187",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 6,
+            "timestamp": "2026-10-30T15:01:00Z",
+            "evaluationStatus": "RULE_NOT_CONFIGURED"
+          },
+          {
+            "id": "040a547e-7916-499c-a94a-feb5d01cec27",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 5,
+            "timestamp": "2026-10-30T15:02:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 9,
+            "timestamp": "2026-10-30T15:03:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 1,
+            "timestamp": "2026-10-30T15:04:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "5c9f6f04-458d-4c40-9588-c63fa8ee9ac5",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 2,
+            "timestamp": "2026-10-30T15:05:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "22c129b5-73cb-40b3-a3b3-d4cf04026f96",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 8,
+            "timestamp": "2026-10-30T15:06:00Z",
+            "evaluationStatus": "COMPLETED"
+          },
+          {
+            "id": "87c89cda-d434-4b23-b59a-50b86f655ad2",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "temperature": 30,
+            "timestamp": "2026-10-30T15:07:00Z",
+            "evaluationStatus": "PENDING"
+          }
+        ],
+        "alerts": [
+          {
+            "id": "e70ad718-dbcd-42d6-9b6b-55a9acf41639",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "measurementId": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+            "temperature": 9,
+            "thresholdMin": 2,
+            "thresholdMax": 8,
+            "status": "OPEN",
+            "createdAt": "2026-10-30T15:14:22.273910Z",
+            "type": "HIGH_TEMPERATURE"
+          },
+          {
+            "id": "1be9d61e-e80c-492e-88e8-e569eab9717a",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "measurementId": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+            "temperature": 1,
+            "thresholdMin": 2,
+            "thresholdMax": 8,
+            "status": "OPEN",
+            "createdAt": "2026-10-30T15:14:22.499384Z",
+            "type": "LOW_TEMPERATURE"
+          },
+          {
+            "id": "b044d8eb-e9b8-48fe-95ca-2bc68a08c2ff",
+            "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "measurementId": "87c89cda-d434-4b23-b59a-50b86f655ad2",
+            "temperature": 30,
+            "thresholdMin": 2,
+            "thresholdMax": 8,
+            "status": "OPEN",
+            "createdAt": "2026-10-30T15:15:27.775826Z",
+            "type": "HIGH_TEMPERATURE"
+          }
+        ]
+      }
+    },
+    "browser": [
+      {
+        "phase": "register",
+        "base": "http://127.0.0.1:5173",
+        "errors": [],
+        "responses": [
+          {
+            "method": "GET",
+            "path": "/src/features/telemetry/MeasurementForm.tsx",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/src/features/telemetry/MeasurementTable.tsx",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/src/features/alerts/AlertTable.tsx",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/src/features/telemetry/MeasurementStatus.tsx",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/actuator/health",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/actuator/health",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/registry/actuator/health",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/registry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/registry/api/v1/monitoring-points",
+            "status": 200,
+            "body": []
+          },
+          {
+            "method": "POST",
+            "path": "/registry/api/v1/monitoring-points",
+            "status": 201,
+            "requestBody": {
+              "code": "MVP-INTEGRATION",
+              "name": "Cámara de integración verificada",
+              "type": "ALMACENAMIENTO"
+            },
+            "body": {
+              "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+              "code": "MVP-INTEGRATION",
+              "name": "Cámara de integración verificada",
+              "type": "ALMACENAMIENTO"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/registry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/registry/api/v1/monitoring-points",
+            "status": 200,
+            "body": [
+              {
+                "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "code": "MVP-INTEGRATION",
+                "name": "Cámara de integración verificada",
+                "type": "ALMACENAMIENTO"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/registry/api/v1/monitoring-points",
+            "status": 409,
+            "requestBody": {
+              "code": "MVP-INTEGRATION",
+              "name": "Duplicado de prueba",
+              "type": "ALMACENAMIENTO"
+            },
+            "body": {
+              "type": "about:blank",
+              "title": "Conflict",
+              "status": 409,
+              "detail": "Ya existe un punto con ese código",
+              "instance": "/api/v1/monitoring-points"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/api/alerts?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": []
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/api/measurements?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": []
+          },
+          {
+            "method": "POST",
+            "path": "/telemetry/api/measurements",
+            "status": 201,
+            "requestBody": {
+              "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+              "temperature": 6,
+              "timestamp": "2026-10-30T15:01:00.000Z"
+            },
+            "body": {
+              "id": "ae9b0518-63f1-4b9f-bb8f-0f350db94187",
+              "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+              "temperature": 6,
+              "timestamp": "2026-10-30T15:01:00Z",
+              "evaluationStatus": "RULE_NOT_CONFIGURED"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/registry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/api/measurements?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": [
+              {
+                "id": "ae9b0518-63f1-4b9f-bb8f-0f350db94187",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 6,
+                "timestamp": "2026-10-30T15:01:00Z",
+                "evaluationStatus": "RULE_NOT_CONFIGURED"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/registry/api/v1/monitoring-points",
+            "status": 200,
+            "body": [
+              {
+                "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "code": "MVP-INTEGRATION",
+                "name": "Cámara de integración verificada",
+                "type": "ALMACENAMIENTO"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/api/alerts?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": []
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "phase": "functional",
+        "base": "http://127.0.0.1:5173",
+        "errors": [],
+        "responses": [
+          {
+            "method": "GET",
+            "path": "/src/features/telemetry/MeasurementTable.tsx",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/src/features/telemetry/MeasurementForm.tsx",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/src/features/telemetry/MeasurementStatus.tsx",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/src/features/alerts/AlertTable.tsx",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/registry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/registry/api/v1/monitoring-points",
+            "status": 200,
+            "body": [
+              {
+                "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "code": "MVP-INTEGRATION",
+                "name": "Cámara de integración verificada",
+                "type": "ALMACENAMIENTO"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/api/measurements?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": [
+              {
+                "id": "ae9b0518-63f1-4b9f-bb8f-0f350db94187",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 6,
+                "timestamp": "2026-10-30T15:01:00Z",
+                "evaluationStatus": "RULE_NOT_CONFIGURED"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/api/alerts?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": []
+          },
+          {
+            "method": "POST",
+            "path": "/telemetry/api/measurements",
+            "status": 201,
+            "requestBody": {
+              "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+              "temperature": 5,
+              "timestamp": "2026-10-30T15:02:00.000Z"
+            },
+            "body": {
+              "id": "040a547e-7916-499c-a94a-feb5d01cec27",
+              "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+              "temperature": 5,
+              "timestamp": "2026-10-30T15:02:00Z",
+              "evaluationStatus": "COMPLETED"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/registry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/api/alerts?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": []
+          },
+          {
+            "method": "GET",
+            "path": "/registry/api/v1/monitoring-points",
+            "status": 200,
+            "body": [
+              {
+                "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "code": "MVP-INTEGRATION",
+                "name": "Cámara de integración verificada",
+                "type": "ALMACENAMIENTO"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/api/measurements?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": [
+              {
+                "id": "ae9b0518-63f1-4b9f-bb8f-0f350db94187",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 6,
+                "timestamp": "2026-10-30T15:01:00Z",
+                "evaluationStatus": "RULE_NOT_CONFIGURED"
+              },
+              {
+                "id": "040a547e-7916-499c-a94a-feb5d01cec27",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 5,
+                "timestamp": "2026-10-30T15:02:00Z",
+                "evaluationStatus": "COMPLETED"
+              }
+            ]
+          },
+          {
+            "method": "POST",
+            "path": "/telemetry/api/measurements",
+            "status": 201,
+            "requestBody": {
+              "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+              "temperature": 9,
+              "timestamp": "2026-10-30T15:03:00.000Z"
+            },
+            "body": {
+              "id": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+              "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+              "temperature": 9,
+              "timestamp": "2026-10-30T15:03:00Z",
+              "evaluationStatus": "COMPLETED"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/registry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/registry/api/v1/monitoring-points",
+            "status": 200,
+            "body": [
+              {
+                "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "code": "MVP-INTEGRATION",
+                "name": "Cámara de integración verificada",
+                "type": "ALMACENAMIENTO"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/api/measurements?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": [
+              {
+                "id": "ae9b0518-63f1-4b9f-bb8f-0f350db94187",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 6,
+                "timestamp": "2026-10-30T15:01:00Z",
+                "evaluationStatus": "RULE_NOT_CONFIGURED"
+              },
+              {
+                "id": "040a547e-7916-499c-a94a-feb5d01cec27",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 5,
+                "timestamp": "2026-10-30T15:02:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 9,
+                "timestamp": "2026-10-30T15:03:00Z",
+                "evaluationStatus": "COMPLETED"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/api/alerts?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": [
+              {
+                "id": "e70ad718-dbcd-42d6-9b6b-55a9acf41639",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "measurementId": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+                "temperature": 9,
+                "thresholdMin": 2,
+                "thresholdMax": 8,
+                "status": "OPEN",
+                "createdAt": "2026-10-30T15:14:22.273910Z",
+                "type": "HIGH_TEMPERATURE"
+              }
+            ]
+          },
+          {
+            "method": "POST",
+            "path": "/telemetry/api/measurements",
+            "status": 201,
+            "requestBody": {
+              "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+              "temperature": 1,
+              "timestamp": "2026-10-30T15:04:00.000Z"
+            },
+            "body": {
+              "id": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+              "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+              "temperature": 1,
+              "timestamp": "2026-10-30T15:04:00Z",
+              "evaluationStatus": "COMPLETED"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/registry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/registry/api/v1/monitoring-points",
+            "status": 200,
+            "body": [
+              {
+                "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "code": "MVP-INTEGRATION",
+                "name": "Cámara de integración verificada",
+                "type": "ALMACENAMIENTO"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/api/measurements?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": [
+              {
+                "id": "ae9b0518-63f1-4b9f-bb8f-0f350db94187",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 6,
+                "timestamp": "2026-10-30T15:01:00Z",
+                "evaluationStatus": "RULE_NOT_CONFIGURED"
+              },
+              {
+                "id": "040a547e-7916-499c-a94a-feb5d01cec27",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 5,
+                "timestamp": "2026-10-30T15:02:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 9,
+                "timestamp": "2026-10-30T15:03:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 1,
+                "timestamp": "2026-10-30T15:04:00Z",
+                "evaluationStatus": "COMPLETED"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/api/alerts?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": [
+              {
+                "id": "e70ad718-dbcd-42d6-9b6b-55a9acf41639",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "measurementId": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+                "temperature": 9,
+                "thresholdMin": 2,
+                "thresholdMax": 8,
+                "status": "OPEN",
+                "createdAt": "2026-10-30T15:14:22.273910Z",
+                "type": "HIGH_TEMPERATURE"
+              },
+              {
+                "id": "1be9d61e-e80c-492e-88e8-e569eab9717a",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "measurementId": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+                "temperature": 1,
+                "thresholdMin": 2,
+                "thresholdMax": 8,
+                "status": "OPEN",
+                "createdAt": "2026-10-30T15:14:22.499384Z",
+                "type": "LOW_TEMPERATURE"
+              }
+            ]
+          },
+          {
+            "method": "POST",
+            "path": "/telemetry/api/measurements",
+            "status": 201,
+            "requestBody": {
+              "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+              "temperature": 2,
+              "timestamp": "2026-10-30T15:05:00.000Z"
+            },
+            "body": {
+              "id": "5c9f6f04-458d-4c40-9588-c63fa8ee9ac5",
+              "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+              "temperature": 2,
+              "timestamp": "2026-10-30T15:05:00Z",
+              "evaluationStatus": "COMPLETED"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/registry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/registry/api/v1/monitoring-points",
+            "status": 200,
+            "body": [
+              {
+                "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "code": "MVP-INTEGRATION",
+                "name": "Cámara de integración verificada",
+                "type": "ALMACENAMIENTO"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/api/alerts?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": [
+              {
+                "id": "e70ad718-dbcd-42d6-9b6b-55a9acf41639",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "measurementId": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+                "temperature": 9,
+                "thresholdMin": 2,
+                "thresholdMax": 8,
+                "status": "OPEN",
+                "createdAt": "2026-10-30T15:14:22.273910Z",
+                "type": "HIGH_TEMPERATURE"
+              },
+              {
+                "id": "1be9d61e-e80c-492e-88e8-e569eab9717a",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "measurementId": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+                "temperature": 1,
+                "thresholdMin": 2,
+                "thresholdMax": 8,
+                "status": "OPEN",
+                "createdAt": "2026-10-30T15:14:22.499384Z",
+                "type": "LOW_TEMPERATURE"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/api/measurements?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": [
+              {
+                "id": "ae9b0518-63f1-4b9f-bb8f-0f350db94187",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 6,
+                "timestamp": "2026-10-30T15:01:00Z",
+                "evaluationStatus": "RULE_NOT_CONFIGURED"
+              },
+              {
+                "id": "040a547e-7916-499c-a94a-feb5d01cec27",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 5,
+                "timestamp": "2026-10-30T15:02:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 9,
+                "timestamp": "2026-10-30T15:03:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 1,
+                "timestamp": "2026-10-30T15:04:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "5c9f6f04-458d-4c40-9588-c63fa8ee9ac5",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 2,
+                "timestamp": "2026-10-30T15:05:00Z",
+                "evaluationStatus": "COMPLETED"
+              }
+            ]
+          },
+          {
+            "method": "POST",
+            "path": "/telemetry/api/measurements",
+            "status": 201,
+            "requestBody": {
+              "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+              "temperature": 8,
+              "timestamp": "2026-10-30T15:06:00.000Z"
+            },
+            "body": {
+              "id": "22c129b5-73cb-40b3-a3b3-d4cf04026f96",
+              "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+              "temperature": 8,
+              "timestamp": "2026-10-30T15:06:00Z",
+              "evaluationStatus": "COMPLETED"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/registry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/registry/api/v1/monitoring-points",
+            "status": 200,
+            "body": [
+              {
+                "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "code": "MVP-INTEGRATION",
+                "name": "Cámara de integración verificada",
+                "type": "ALMACENAMIENTO"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/api/measurements?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": [
+              {
+                "id": "ae9b0518-63f1-4b9f-bb8f-0f350db94187",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 6,
+                "timestamp": "2026-10-30T15:01:00Z",
+                "evaluationStatus": "RULE_NOT_CONFIGURED"
+              },
+              {
+                "id": "040a547e-7916-499c-a94a-feb5d01cec27",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 5,
+                "timestamp": "2026-10-30T15:02:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 9,
+                "timestamp": "2026-10-30T15:03:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 1,
+                "timestamp": "2026-10-30T15:04:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "5c9f6f04-458d-4c40-9588-c63fa8ee9ac5",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 2,
+                "timestamp": "2026-10-30T15:05:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "22c129b5-73cb-40b3-a3b3-d4cf04026f96",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 8,
+                "timestamp": "2026-10-30T15:06:00Z",
+                "evaluationStatus": "COMPLETED"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/api/alerts?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": [
+              {
+                "id": "e70ad718-dbcd-42d6-9b6b-55a9acf41639",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "measurementId": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+                "temperature": 9,
+                "thresholdMin": 2,
+                "thresholdMax": 8,
+                "status": "OPEN",
+                "createdAt": "2026-10-30T15:14:22.273910Z",
+                "type": "HIGH_TEMPERATURE"
+              },
+              {
+                "id": "1be9d61e-e80c-492e-88e8-e569eab9717a",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "measurementId": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+                "temperature": 1,
+                "thresholdMin": 2,
+                "thresholdMax": 8,
+                "status": "OPEN",
+                "createdAt": "2026-10-30T15:14:22.499384Z",
+                "type": "LOW_TEMPERATURE"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "phase": "restored",
+        "base": "http://127.0.0.1:5173",
+        "errors": [],
+        "responses": [
+          {
+            "method": "GET",
+            "path": "/src/features/telemetry/MeasurementTable.tsx",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/src/features/telemetry/MeasurementStatus.tsx",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/src/features/telemetry/MeasurementForm.tsx",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/src/features/alerts/AlertTable.tsx",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/registry/api/v1/monitoring-points",
+            "status": 200,
+            "body": [
+              {
+                "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "code": "MVP-INTEGRATION",
+                "name": "Cámara de integración verificada",
+                "type": "ALMACENAMIENTO"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/registry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/api/alerts?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": [
+              {
+                "id": "e70ad718-dbcd-42d6-9b6b-55a9acf41639",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "measurementId": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+                "temperature": 9,
+                "thresholdMin": 2,
+                "thresholdMax": 8,
+                "status": "OPEN",
+                "createdAt": "2026-10-30T15:14:22.273910Z",
+                "type": "HIGH_TEMPERATURE"
+              },
+              {
+                "id": "1be9d61e-e80c-492e-88e8-e569eab9717a",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "measurementId": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+                "temperature": 1,
+                "thresholdMin": 2,
+                "thresholdMax": 8,
+                "status": "OPEN",
+                "createdAt": "2026-10-30T15:14:22.499384Z",
+                "type": "LOW_TEMPERATURE"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/api/measurements?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": [
+              {
+                "id": "ae9b0518-63f1-4b9f-bb8f-0f350db94187",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 6,
+                "timestamp": "2026-10-30T15:01:00Z",
+                "evaluationStatus": "RULE_NOT_CONFIGURED"
+              },
+              {
+                "id": "040a547e-7916-499c-a94a-feb5d01cec27",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 5,
+                "timestamp": "2026-10-30T15:02:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 9,
+                "timestamp": "2026-10-30T15:03:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 1,
+                "timestamp": "2026-10-30T15:04:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "5c9f6f04-458d-4c40-9588-c63fa8ee9ac5",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 2,
+                "timestamp": "2026-10-30T15:05:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "22c129b5-73cb-40b3-a3b3-d4cf04026f96",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 8,
+                "timestamp": "2026-10-30T15:06:00Z",
+                "evaluationStatus": "COMPLETED"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "phase": "pending",
+        "base": "http://127.0.0.1:5173",
+        "errors": [],
+        "responses": [
+          {
+            "method": "GET",
+            "path": "/src/features/telemetry/MeasurementForm.tsx",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/src/features/telemetry/MeasurementStatus.tsx",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/src/features/telemetry/MeasurementTable.tsx",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/src/features/alerts/AlertTable.tsx",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/actuator/health",
+            "status": 500
+          },
+          {
+            "method": "GET",
+            "path": "/registry/actuator/health",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/actuator/health",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/registry/api/v1/monitoring-points",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/actuator/health",
+            "status": 500
+          },
+          {
+            "method": "GET",
+            "path": "/registry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/registry/api/v1/monitoring-points",
+            "status": 200,
+            "body": [
+              {
+                "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "code": "MVP-INTEGRATION",
+                "name": "Cámara de integración verificada",
+                "type": "ALMACENAMIENTO"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/api/alerts?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 500
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/api/measurements?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": [
+              {
+                "id": "ae9b0518-63f1-4b9f-bb8f-0f350db94187",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 6,
+                "timestamp": "2026-10-30T15:01:00Z",
+                "evaluationStatus": "RULE_NOT_CONFIGURED"
+              },
+              {
+                "id": "040a547e-7916-499c-a94a-feb5d01cec27",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 5,
+                "timestamp": "2026-10-30T15:02:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 9,
+                "timestamp": "2026-10-30T15:03:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 1,
+                "timestamp": "2026-10-30T15:04:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "5c9f6f04-458d-4c40-9588-c63fa8ee9ac5",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 2,
+                "timestamp": "2026-10-30T15:05:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "22c129b5-73cb-40b3-a3b3-d4cf04026f96",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 8,
+                "timestamp": "2026-10-30T15:06:00Z",
+                "evaluationStatus": "COMPLETED"
+              }
+            ]
+          },
+          {
+            "method": "POST",
+            "path": "/telemetry/api/measurements",
+            "status": 201,
+            "requestBody": {
+              "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+              "temperature": 30,
+              "timestamp": "2026-10-30T15:07:00.000Z"
+            },
+            "body": {
+              "id": "87c89cda-d434-4b23-b59a-50b86f655ad2",
+              "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+              "temperature": 30,
+              "timestamp": "2026-10-30T15:07:00Z",
+              "evaluationStatus": "PENDING"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/actuator/health",
+            "status": 500
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/api/alerts?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 500
+          },
+          {
+            "method": "GET",
+            "path": "/registry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/api/measurements?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": [
+              {
+                "id": "ae9b0518-63f1-4b9f-bb8f-0f350db94187",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 6,
+                "timestamp": "2026-10-30T15:01:00Z",
+                "evaluationStatus": "RULE_NOT_CONFIGURED"
+              },
+              {
+                "id": "040a547e-7916-499c-a94a-feb5d01cec27",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 5,
+                "timestamp": "2026-10-30T15:02:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 9,
+                "timestamp": "2026-10-30T15:03:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 1,
+                "timestamp": "2026-10-30T15:04:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "5c9f6f04-458d-4c40-9588-c63fa8ee9ac5",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 2,
+                "timestamp": "2026-10-30T15:05:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "22c129b5-73cb-40b3-a3b3-d4cf04026f96",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 8,
+                "timestamp": "2026-10-30T15:06:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "87c89cda-d434-4b23-b59a-50b86f655ad2",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 30,
+                "timestamp": "2026-10-30T15:07:00Z",
+                "evaluationStatus": "PENDING"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/registry/api/v1/monitoring-points",
+            "status": 200,
+            "body": [
+              {
+                "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "code": "MVP-INTEGRATION",
+                "name": "Cámara de integración verificada",
+                "type": "ALMACENAMIENTO"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "phase": "preview",
+        "base": "http://127.0.0.1:4173",
+        "errors": [],
+        "responses": [
+          {
+            "method": "GET",
+            "path": "/registry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/registry/api/v1/monitoring-points",
+            "status": 200,
+            "body": [
+              {
+                "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "code": "MVP-INTEGRATION",
+                "name": "Cámara de integración verificada",
+                "type": "ALMACENAMIENTO"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/api/measurements?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": [
+              {
+                "id": "ae9b0518-63f1-4b9f-bb8f-0f350db94187",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 6,
+                "timestamp": "2026-10-30T15:01:00Z",
+                "evaluationStatus": "RULE_NOT_CONFIGURED"
+              },
+              {
+                "id": "040a547e-7916-499c-a94a-feb5d01cec27",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 5,
+                "timestamp": "2026-10-30T15:02:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 9,
+                "timestamp": "2026-10-30T15:03:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 1,
+                "timestamp": "2026-10-30T15:04:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "5c9f6f04-458d-4c40-9588-c63fa8ee9ac5",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 2,
+                "timestamp": "2026-10-30T15:05:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "22c129b5-73cb-40b3-a3b3-d4cf04026f96",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 8,
+                "timestamp": "2026-10-30T15:06:00Z",
+                "evaluationStatus": "COMPLETED"
+              },
+              {
+                "id": "87c89cda-d434-4b23-b59a-50b86f655ad2",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "temperature": 30,
+                "timestamp": "2026-10-30T15:07:00Z",
+                "evaluationStatus": "PENDING"
+              }
+            ]
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/api/alerts?monitoringPointId=5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+            "status": 200,
+            "body": [
+              {
+                "id": "e70ad718-dbcd-42d6-9b6b-55a9acf41639",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "measurementId": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+                "temperature": 9,
+                "thresholdMin": 2,
+                "thresholdMax": 8,
+                "status": "OPEN",
+                "createdAt": "2026-10-30T15:14:22.273910Z",
+                "type": "HIGH_TEMPERATURE"
+              },
+              {
+                "id": "1be9d61e-e80c-492e-88e8-e569eab9717a",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "measurementId": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+                "temperature": 1,
+                "thresholdMin": 2,
+                "thresholdMax": 8,
+                "status": "OPEN",
+                "createdAt": "2026-10-30T15:14:22.499384Z",
+                "type": "LOW_TEMPERATURE"
+              },
+              {
+                "id": "b044d8eb-e9b8-48fe-95ca-2bc68a08c2ff",
+                "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+                "measurementId": "87c89cda-d434-4b23-b59a-50b86f655ad2",
+                "temperature": 30,
+                "thresholdMin": 2,
+                "thresholdMax": 8,
+                "status": "OPEN",
+                "createdAt": "2026-10-30T15:15:27.775826Z",
+                "type": "HIGH_TEMPERATURE"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "phase": "offline",
+        "base": "http://127.0.0.1:5173",
+        "errors": [],
+        "responses": [
+          {
+            "method": "GET",
+            "path": "/src/features/telemetry/MeasurementForm.tsx",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/src/features/telemetry/MeasurementTable.tsx",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/src/features/telemetry/MeasurementStatus.tsx",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/src/features/alerts/AlertTable.tsx",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/registry/actuator/health",
+            "status": 500
+          },
+          {
+            "method": "GET",
+            "path": "/registry/api/v1/monitoring-points",
+            "status": 500
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/actuator/health",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/actuator/health",
+            "status": 200
+          },
+          {
+            "method": "GET",
+            "path": "/registry/actuator/health",
+            "status": 500
+          },
+          {
+            "method": "GET",
+            "path": "/registry/api/v1/monitoring-points",
+            "status": 500
+          },
+          {
+            "method": "GET",
+            "path": "/alerts/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/telemetry/actuator/health",
+            "status": 200,
+            "body": {
+              "status": "UP",
+              "groups": [
+                "liveness",
+                "readiness"
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "point": {
+      "id": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+      "code": "MVP-INTEGRATION",
+      "name": "Cámara de integración verificada",
+      "type": "ALMACENAMIENTO"
+    },
+    "cases": [
+      {
+        "id": "040a547e-7916-499c-a94a-feb5d01cec27",
+        "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+        "temperature": 5,
+        "timestamp": "2026-10-30T15:02:00Z",
+        "evaluationStatus": "COMPLETED"
+      },
+      {
+        "id": "59ee4f81-871a-4986-9a30-7dd8acc52d2d",
+        "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+        "temperature": 9,
+        "timestamp": "2026-10-30T15:03:00Z",
+        "evaluationStatus": "COMPLETED"
+      },
+      {
+        "id": "6cd0cb4e-7335-47a6-ab8f-5250a4524236",
+        "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+        "temperature": 1,
+        "timestamp": "2026-10-30T15:04:00Z",
+        "evaluationStatus": "COMPLETED"
+      },
+      {
+        "id": "5c9f6f04-458d-4c40-9588-c63fa8ee9ac5",
+        "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+        "temperature": 2,
+        "timestamp": "2026-10-30T15:05:00Z",
+        "evaluationStatus": "COMPLETED"
+      },
+      {
+        "id": "22c129b5-73cb-40b3-a3b3-d4cf04026f96",
+        "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+        "temperature": 8,
+        "timestamp": "2026-10-30T15:06:00Z",
+        "evaluationStatus": "COMPLETED"
+      }
+    ],
+    "missingRuleMeasurement": {
+      "id": "ae9b0518-63f1-4b9f-bb8f-0f350db94187",
+      "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+      "temperature": 6,
+      "timestamp": "2026-10-30T15:01:00Z",
+      "evaluationStatus": "RULE_NOT_CONFIGURED"
+    },
+    "databaseInspection": "DATABASE cc_mvp_registry_9056\n  TABLE flyway_schema_history\n  TABLE monitoring_points\n  COUNT monitoring_points=1\nDATABASE cc_mvp_telemetry_9056\n  TABLE flyway_schema_history\n  TABLE measurements\n  COUNT measurements=6\nDATABASE cc_mvp_alerts_9056\n  TABLE alerts\n  TABLE flyway_schema_history\n  TABLE measurement_evaluations\n  COUNT alerts=2\n  COUNT measurement_evaluations=5\n",
+    "pendingMeasurement": {
+      "id": "87c89cda-d434-4b23-b59a-50b86f655ad2",
+      "monitoringPointId": "5a8f7c20-6dc5-4ebd-acaa-9d2fb447c38f",
+      "temperature": 30,
+      "timestamp": "2026-10-30T15:07:00Z",
+      "evaluationStatus": "PENDING"
+    },
+    "result": "passed"
+  },
+  "limitations": [
+    "No team/production databases or credentials were used after temporary environment loss.",
+    "Direct cross-origin frontend URLs require deployment proxy or explicit CORS.",
+    "Manual evaluation recovery does not reconcile Telemetry PENDING.",
+    "No remote CI, deployment, cloud or physical mobile device verification."
+  ]
+}

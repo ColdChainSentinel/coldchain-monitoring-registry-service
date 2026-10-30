@@ -1,4 +1,4 @@
-# Guía de integración — fase 1
+# Guía de integración
 
 ## Estado y decisiones
 
@@ -13,14 +13,19 @@ usan esos mismos componentes, con subpaquetes `telemetry` y `alerts`. No hay lib
 de dominio compartida, dependencias Maven entre servicios ni consultas a bases ajenas.
 Cada servicio es una aplicación/JAR independiente. El POM raíz solo agrega builds.
 
-**Implementado:** Registry y esqueletos de arranque de Telemetry/Alerts; frontend de
-prueba. **Solo diseñado:** endpoints de mediciones, evaluación y consulta de alertas,
-reglas térmicas, clientes entre servicios y persistencia del nuevo dominio. Consultar
-los contratos versionados en `docs/api-contracts/`. Los contratos no implican que las
-rutas funcionales nuevas ya respondan; actualmente responden 404. Swagger muestra
-las rutas realmente implementadas, no simula las operaciones futuras.
+**Implementado:** Registry; ingesta/consulta y persistencia de Telemetry con validación
+HTTP contra Registry y cliente HTTP de evaluación; Alert Management con reglas por UUID,
+evaluación idempotente y consulta de alertas; frontend funcional de puntos, mediciones,
+alertas y dashboard por punto. **Pendientes:** entorno desplegado, infraestructura y
+seguridad. Si Alerts no está disponible, Telemetry conserva
+las mediciones como PENDING.
+Swagger muestra las rutas realmente implementadas. Contratos: `docs/api-contracts/`;
+detalle y precisiones de Telemetry: [implementación](telemetry-ingestion.md).
+Reglas, persistencia e idempotencia de Alerts: [implementación](alert-management.md).
+Flujo completo verificado desde React con PostgreSQL y reinicios:
+[integración funcional del MVP](mvp-integration.md).
 
-## Comunicación acordada para implementar después
+## Comunicación implementada
 
 1. Frontend consulta Registry en `/api/v1/monitoring-points`.
 2. Un emisor envía temperatura (grados Celsius) y fecha RFC 3339 con zona a Telemetry.
@@ -28,12 +33,12 @@ las rutas realmente implementadas, no simula las operaciones futuras.
    Un punto inexistente devuelve 404; Registry no disponible, 503; no se persiste.
 4. Telemetry persiste la medición con UUID propio y hace POST HTTP síncrono a
    `/api/alerts/evaluate`, enviando esa medición. Sin broker ni gateway.
-5. Alerts valida el punto contra Registry y busca una regla explícita por UUID en
+5. Para evaluaciones nuevas, Alerts valida el punto contra Registry y busca una regla explícita por UUID en
    su propia configuración externalizada: `coldchain.alerts.rules.<UUID>.threshold-min`
-   y `threshold-max`, ambos decimales Celsius. Se prevé un archivo externo montado con
-   `SPRING_CONFIG_ADDITIONAL_LOCATION` (no incluido ni cargado todavía). No se deducen
+   y `threshold-max`, ambos decimales Celsius. Se carga un archivo externo mediante
+   `SPRING_CONFIG_ADDITIONAL_LOCATION` (sin reglas productivas incluidas en Git). No se deducen
    límites de `ALMACENAMIENTO`/`TRANSPORTE`; Registry no tiene ese dato.
-6. Una regla válida exige min <= max; la futura implementación debe rechazar al
+6. Una regla válida exige min <= max; la implementación rechaza al
    arrancar una configuración inválida, no sustituirla por valores implícitos.
    Dentro del intervalo **inclusivo**, devuelve
    `NO_ALERT`; fuera, crea una alerta `OPEN` con snapshot de ambos umbrales. Sin regla,
@@ -44,7 +49,7 @@ antes de habilitar evaluación. Un futuro CRUD de reglas o extensión de Registr
 fuera de esta fase. La configuración no contiene secretos y no se aceptan umbrales
 arbitrarios enviados por el emisor. No se implementa cierre/ack de alertas aún.
 
-### Fallos e idempotencia (contrato, implementación pendiente)
+### Fallos e idempotencia implementados
 
 POST measurements devuelve 201 una vez persistido, con `evaluationStatus`:
 `COMPLETED`, `PENDING` (timeout/5xx de Alerts) o `RULE_NOT_CONFIGURED` (422).
@@ -57,13 +62,13 @@ La reconciliación automática del estado en Telemetry no está resuelta por est
 endpoints: después de un reintento externo puede permanecer PENDING. No se promete
 consistencia eventual automática en el MVP; acordar una estrategia antes de añadirla.
 
-Alerts debe usar `measurementId` como clave única de idempotencia y guardar también
+Alerts usa `measurementId` como clave única de idempotencia y guarda también
 las evaluaciones sin alerta. Repetir el mismo payload devuelve el resultado original
 (200), aun si después cambian las reglas; reutilizar ID con otros datos devuelve 409.
 El timestamp de entrada es el de la medición; `createdAt` lo genera el servidor en UTC.
 GET devuelve arrays, `[]` si no hay datos, ordenados por fecha ascendente y UUID como
 desempate. Paginación, deduplicación de ingesta, autenticación y procesamiento asíncrono
-quedan pendientes. No usar estos esqueletos como servicios públicos.
+quedan pendientes. No exponer estas APIs como servicios públicos sin controles de acceso.
 
 ## Configuración y ejecución
 
@@ -76,9 +81,13 @@ quedan pendientes. No usar estos esqueletos como servicios públicos.
 
 Cada proceso recibe su propio entorno; no exportar un único `PORT`/`DB_URL` para los tres.
 PostgreSQL: crear bases y usuarios independientes previamente, sin permisos cruzados.
-Los nuevos proyectos incluyen Flyway pero ninguna migración de dominio: no crean tablas
-de negocio. Hibernate usa `validate`, nunca `update`. H2 solo está en el classpath de
-test/smoke. Tests no requieren PostgreSQL ni servicios externos.
+Telemetry incluye migración Flyway de `measurements` e índice por punto/fecha/UUID;
+Alerts crea `alerts` y `measurement_evaluations`, con restricciones de unicidad y FK
+solo entre sus propias tablas. Hibernate usa `validate`, nunca `update`.
+H2 solo está en el classpath de test/smoke. Tests predeterminados no requieren
+PostgreSQL ni servicios externos; Telemetry y Alerts admiten TEST_DB_* para bases PostgreSQL
+desechables y exclusivas (sus suites borran datos), según sus README. Ejecutar cada
+suite por separado sobre su propia base, no el agregador con una única TEST_DB_URL.
 
 Health real: `/actuator/health`; liveness: `/actuator/health/liveness`; readiness:
 `/actuator/health/readiness` en los nuevos servicios. Health incluye conectividad DB;
@@ -86,9 +95,10 @@ liveness solo comprueba el proceso. Swagger: `/swagger-ui.html`; API real genera
 `/v3/api-docs`. No hay credenciales predeterminadas nuevas. Logs por stdout/stderr.
 El perfil `smoke` existe exclusivamente en tests: no usar en producción.
 
-Las URLs entre servicios están externalizadas como puntos de integración; todavía no
-hay clientes HTTP ni llamadas al iniciar. Al implementarlos, configurar timeouts finitos
-(propuesta: conexión 2s, respuesta 5s), sin reintentos de ingesta que dupliquen mediciones.
+Telemetry consume las URLs al ingerir, no al iniciar. Sus timeouts son externalizables:
+`HTTP_CONNECT_TIMEOUT=2s`, `HTTP_READ_TIMEOUT=5s` por defecto (duraciones positivas).
+Sin reintentos de ingesta que dupliquen mediciones. Alerts también usa esos timeouts
+para validar puntos nuevos en Registry. Replays ya guardados no dependen de Registry.
 
 Vite reenvía los prefijos locales a 8080/8081/8082 y los elimina; así no se modifica CORS
 de Registry. En producción, el equipo debe ofrecer proxy de mismo origen o CORS explícito
@@ -121,11 +131,13 @@ no poner tokens ni contraseñas en ellas. Vite dev server no es un servidor de p
   salud, Swagger y ausencia de endpoints de negocio. Crear aceptación con los YAML
   contractuales: UUID/fechas inválidos, punto inexistente, regla ausente, límites
   inclusivos, duplicado de evaluación, fallos HTTP y estado pendiente. Integración con
-  PostgreSQL real es responsabilidad pendiente; H2 no demuestra compatibilidad total.
-- **Backend:** implementar primero validaciones y persistencia contra contratos; luego
-  HTTP e idempotencia. No importar entidades ni reutilizar las tablas de otro servicio.
-- **Frontend:** reemplazar página de diagnóstico por vistas a partir de contratos;
-  salud y URLs ya tienen cliente tipado, pero no existe dashboard ni autenticación.
+  PostgreSQL real puede repetirse con TEST_DB_* en una DB exclusiva; H2 no demuestra compatibilidad total.
+- **Backend:** validaciones, persistencia, HTTP e idempotencia de evaluación ya están
+  implementados. Mantener la separación de bases y no añadir reintentos de ingesta ni
+  reconciliación automática sin acordar contrato y estrategia de recuperación.
+- **Frontend:** dashboard, formularios y consultas por punto ya consumen las tres APIs.
+  Se verificaron proxy local, errores y PENDING; no hay autenticación ni cambios de reglas
+  desde la UI. El despliegue necesita proxy de mismo origen o CORS y URLs acordadas.
 
 ## Compatibilidad de archivos anteriores
 
