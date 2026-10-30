@@ -104,15 +104,19 @@ no poner tokens ni contraseñas en ellas. Vite dev server no es un servidor de p
   `docker-compose.yml` es un marcador vacío, no una composición ejecutable.
 - **CI/CD:** el workflow previo de Registry conserva jobs, gate 70%, Checkstyle y
   artefactos; solo se adaptan rutas. Agregar luego jobs por servicio y frontend usando
-  los comandos del README. No hay pipelines nuevos ni despliegues en esta fase.
+  los comandos del README. La función incorpora `ci-serverless.yml` para tests y
+  registro del SDK; coordinar su chequeo obligatorio con el responsable de CI/CD.
+  No se incluyen despliegues automáticos.
 - **Azure/IaC:** reservar variables, puertos, bases, secretos, probes y URL pública del
   frontend. No se crean recursos ni manifiestos. Acordar seguridad antes de exposición.
 - **DevSecOps:** preparar análisis de dependencias Java/npm, escaneo de secretos y
   revisión de exposición de Swagger/Actuator y de `/api/alerts/evaluate`. No existe
   autenticación implementada; acordar controles y gestión de secretos antes de publicar.
-- **Serverless:** puede diseñar un emisor de mediciones contra el POST de Telemetry
-  con UUID de punto existente y fecha con zona. No hay trigger, función ni despliegue
-  definidos; acordarlos con el equipo sin cambiar el contrato ni introducir un broker.
+- **Serverless:** implementado un emisor de pruebas independiente en
+  `functions/telemetry-simulator/`, con Timer Trigger de Azure Functions, UUID de punto
+  y fecha UTC. Dry-run por defecto; POST sin reintentos porque la ingesta no deduplica.
+  No cambia contratos ni introduce broker. Ver su README para pruebas y configuración.
+  El despliegue y la integración con el negocio Telemetry/Alerts siguen pendientes.
 - **Testing:** Registry mantiene tests existentes; nuevos smoke tests verifican arranque,
   salud, Swagger y ausencia de endpoints de negocio. Crear aceptación con los YAML
   contractuales: UUID/fechas inválidos, punto inexistente, regla ausente, límites

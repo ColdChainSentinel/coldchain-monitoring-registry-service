@@ -1,8 +1,8 @@
 # ColdChain Sentinel
 
 MVP académico — Agile Software Factories. Monorepo con componentes que se compilan,
-prueban y despliegan independientemente. Esta entrega prepara la integración;
-**no implementa todavía mediciones, alertas, dashboard ni infraestructura nueva**.
+prueban y despliegan independientemente. Incluye un emisor serverless de pruebas;
+**el negocio de mediciones, alertas, dashboard e infraestructura cloud sigue pendiente**.
 
 ## Estructura
 
@@ -12,6 +12,8 @@ services/
   telemetry-ingestion/   # Esqueleto Spring Boot, sin negocio
   alert-management/     # Esqueleto Spring Boot, sin negocio
 frontend/               # React + Vite + TypeScript, página de diagnóstico
+functions/
+  telemetry-simulator/  # Azure Functions: emisor de mediciones con Timer Trigger
 infrastructure/
   terraform/            # Reservado para el equipo
   kubernetes/           # Reservado para el equipo
@@ -158,11 +160,21 @@ errores, idempotencia y evaluación pendiente en la guía, antes de desarrollar.
 
 La [guía de integración](docs/architecture/integration-guide.md) define configuración,
 límites de responsabilidad, manejo de fallos, probes y entregables para Docker,
-CI/CD, Azure/IaC y testing. No se crean pipelines, imágenes ni recursos nuevos;
-el workflow previo únicamente cambia su directorio y rutas de artefactos.
+CI/CD, Azure/IaC y testing. Registry conserva su workflow y la contribución
+serverless añade un CI independiente. No se crean imágenes ni recursos cloud nuevos.
 
 Pendientes: negocio Telemetry/Alerts, reglas asignadas por el responsable funcional,
 pruebas reales PostgreSQL y entre servicios, dashboard, seguridad y despliegues.
 No se debe exponer el MVP públicamente sin controles de acceso acordados.
 
 Resultados de esta entrega: [verificación](docs/architecture/verification.md).
+
+## Contribución serverless y Software Factory (3.5 y 3.8)
+
+La [función emisora](functions/telemetry-simulator/README.md) permite construir mediciones
+en dry-run o enviarlas al contrato de Telemetry mediante un temporizador. Incluye diez
+pruebas y un workflow propio de CI. No contiene reglas térmicas ni notificaciones.
+La integración real requiere que el equipo implemente Telemetry/Alerts.
+
+La [redacción de los apartados 3.5 y 3.8](docs/report/3.5-3.8-joaquin-carbajal.md)
+documenta arquitectura, pruebas, actualización del proceso y pendientes de despliegue.
