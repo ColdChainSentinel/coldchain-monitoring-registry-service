@@ -13,3 +13,14 @@ dist/
 agile.md
 capitulo-3.md
 config/alerts/thermal-rules.yml
+
+# Local ODD task tracking (not versioned)
+/odd/
+
+# Terraform local state, plans and variable files (may contain secrets)
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+!*.tfvars.example
