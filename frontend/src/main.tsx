@@ -4,5 +4,7 @@ import { HomePage } from './pages/HomePage';
 import './styles.css';
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode><HomePage /></StrictMode>,
+  <StrictMode>
+    <HomePage />
+  </StrictMode>,
 );
