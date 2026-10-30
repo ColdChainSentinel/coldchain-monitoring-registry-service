@@ -1,9 +1,10 @@
-name: HU-04 Acceptance
+name: ColdChain Acceptance
 
 on:
   push:
     paths:
-      - 'services/monitoring-registry/**'
+      - 'services/**'
+      - 'tests/integration/**'
       - 'tests/acceptance/**'
       - 'docs/hu04.feature'
       - '.github/workflows/acceptance.yml'
@@ -13,7 +14,8 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'services/monitoring-registry/**'
+      - 'services/**'
+      - 'tests/integration/**'
       - 'tests/acceptance/**'
       - 'docs/hu04.feature'
       - '.github/workflows/acceptance.yml'
@@ -51,4 +53,34 @@ jobs:
             services/monitoring-registry/target/cucumber/
             services/monitoring-registry/target/surefire-reports/
             services/monitoring-registry/target/site/jacoco/
+          if-no-files-found: warn
+
+  integrated-postgres:
+    name: Integrated acceptance - PostgreSQL
+    needs: hu04
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Check Docker availability
+        run: docker info > /dev/null
+      - name: Verify and package the three services
+        run: sh mvnw -B -ntp -Pacceptance clean verify
+      - name: Real HTTP flow with disposable PostgreSQL
+        run: sh mvnw -B -ntp -f tests/integration/pom.xml clean verify
+      - name: Publish integrated acceptance reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integrated-postgres-${{ github.run_number }}
+          path: |
+            tests/integration/target/cucumber/
+            tests/integration/target/failsafe-reports/
+            tests/integration/target/stack/*.log
+            tests/integration/target/stack/environment.txt
           if-no-files-found: warn

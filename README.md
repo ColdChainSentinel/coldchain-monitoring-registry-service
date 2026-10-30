@@ -18,7 +18,7 @@ infrastructure/
   kubernetes/           # Reservado para el equipo
 tests/
   acceptance/           # HU-04 automatizada + diseños EP03 pendientes
-  integration/          # Reservado
+  integration/          # Aceptación HTTP entre servicios, PostgreSQL/H2
 docs/
   architecture/         # Guía de integración y verificación
   api-contracts/        # OpenAPI iniciales versionados
@@ -191,5 +191,12 @@ Flujo completo React → servicios → PostgreSQL, reinicios y resultados actual
 Desde la raíz: `.\mvnw.cmd -B -ntp -pl services/monitoring-registry -Pacceptance clean verify`.
 Ejecuta los tests actuales de Registry y tres escenarios Cucumber con tablas de datos.
 Reportes y pendientes EP03: [tests/acceptance](tests/acceptance/README.md).
-El workflow independiente `HU-04 Acceptance` conserva el CI original y publica los
+El workflow independiente `ColdChain Acceptance` conserva el CI original y publica los
 reportes. Su ejecución remota se verificará después de subir la rama.
+
+Aceptación integrada de mediciones/alertas (12 escenarios, alcance parcial de HU-12
+y HU-19): [ejecución PostgreSQL y H2](tests/integration/README.md). El modo PostgreSQL
+requiere Docker activo; H2 es una comprobación explícita distinta, no un reemplazo
+silencioso de PostgreSQL. El workflow incluye un job PostgreSQL pendiente de validación remota.
+
+Verificación local de aceptación integrada: 12/12 escenarios aprobados con PostgreSQL/Testcontainers, además de la ejecución previa H2. [Evidencia](docs/evidence/acceptance/integrated-local.md). El resultado remoto en Actions sigue pendiente.

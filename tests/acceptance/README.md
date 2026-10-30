@@ -47,7 +47,7 @@ Se generan dentro de `services/monitoring-registry/target/`:
 - `surefire-reports/`: suites JUnit y Cucumber.
 - `site/jacoco/index.html`: cobertura de Registry, no porcentaje de aceptación.
 
-Los reportes generados quedan ignorados por Git. El workflow `HU-04 Acceptance`
+Los reportes generados quedan ignorados por Git. El workflow `ColdChain Acceptance`
 ejecuta el mismo comando en pushes/PR con cambios relevantes y permite ejecución
 manual. Publica reportes incluso ante fallo. Su primer resultado remoto debe
 comprobarse después de subir la rama: añadir YAML no acredita un run aprobado.
@@ -72,7 +72,16 @@ HU-09/HU-10 completas. Estos diseños preservan requisitos pendientes de product
 ## Alcance del apartado 3.6
 
 Este incremento aporta Gherkin automatizado, data tables e integración HTTP/JPA
-interna de Registry con H2. No demuestra compatibilidad PostgreSQL ni integración
-entre los tres procesos. Para cerrar 3.6 faltan automatizar los demás escenarios
+interna de Registry con H2. Por sí solo no demuestra compatibilidad PostgreSQL ni integración
+entre los tres procesos; consultar el segundo incremento al final de esta guía. Para cerrar 3.6 faltan automatizar los demás escenarios
 implementables acordados, complementar integración (por ejemplo PostgreSQL con
 Testcontainers), verificar CI remoto y analizar sus reportes en el informe.
+
+## Segundo incremento: mediciones y alertas integradas
+
+Se añaden los features EP04/HU12 y EP06/HU19 con alcance parcial y casos de contrato.
+Los ejecuta el proyecto independiente [tests/integration](../integration/README.md),
+no el runner HU-04. Hay modo PostgreSQL/Testcontainers por defecto y H2 explícito.
+La ejecución de HU-04 conserva sus tres escenarios y su base aislada.
+Los diseños EP03 continúan pendientes. Consultar la guía de integración para los
+comandos, resultados por modo y faltantes funcionales.
