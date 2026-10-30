@@ -1,9 +1,9 @@
 openapi: 3.0.3
 info:
   title: ColdChain Sentinel - Alert Management
-  version: 0.1.0
+  version: 0.2.0
   description: >-
-    Contrato inicial; negocio pendiente. Evaluación interna HTTP sin broker.
+    Evaluación interna HTTP sin broker. Campo opcional type añadido en 0.2.0.
     Reglas explícitas por UUID configuradas por el equipo; sin límites universales.
 servers:
   - url: http://localhost:8082
@@ -119,11 +119,11 @@ components:
           format: uuid
         temperature:
           type: number
-          description: Decimal finito Celsius; Java BigDecimal
+          description: Número JSON finito Celsius (no string); BigDecimal/NUMERIC sin redondeo, hasta 131072 dígitos enteros y 16383 decimales significativos.
         timestamp:
           type: string
           format: date-time
-          description: RFC 3339 con zona; instante de la medición, no de creación de alerta
+          description: String RFC 3339 con zona, año 0001-9999 y hasta 9 decimales; normalizado a UTC y truncado a microsegundos, no epoch numérico.
     Alert:
       type: object
       required: [id, monitoringPointId, measurementId, temperature, thresholdMin, thresholdMax, status, createdAt]
@@ -150,6 +150,11 @@ components:
           type: string
           enum: [OPEN]
           description: MVP solo registra alertas; cierre y reconocimiento fuera del alcance
+        type:
+          type: string
+          readOnly: true
+          enum: [LOW_TEMPERATURE, HIGH_TEMPERATURE]
+          description: Clasificación añadida en 0.2.0; campo opcional para compatibilidad con consumidores existentes.
         createdAt:
           type: string
           format: date-time

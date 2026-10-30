@@ -35,8 +35,9 @@ class TelemetryApplicationTest {
     }
 
     @Test
-    void businessApiIsNotImplementedYet() {
-        assertThat(http.getForEntity("/api/measurements", String.class).getStatusCode())
-                .isEqualTo(HttpStatus.NOT_FOUND);
+    void businessApiRequiresMonitoringPointId() {
+        var response = http.getForEntity("/api/measurements", String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).contains("\"status\":400");
     }
 }

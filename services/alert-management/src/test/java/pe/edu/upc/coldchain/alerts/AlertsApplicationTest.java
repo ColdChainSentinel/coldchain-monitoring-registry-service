@@ -35,8 +35,8 @@ class AlertsApplicationTest {
     }
 
     @Test
-    void businessApiIsNotImplementedYet() {
+    void businessApiRequiresMonitoringPointId() {
         assertThat(http.getForEntity("/api/alerts", String.class).getStatusCode())
-                .isEqualTo(HttpStatus.NOT_FOUND);
+                .isEqualTo(HttpStatus.BAD_REQUEST);
     }
 }
