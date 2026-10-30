@@ -10,3 +10,5 @@ dist/
 *.tsbuildinfo
 .env.*
 !.env.example
+agile.md
+capitulo-3.md
