@@ -1,7 +1,7 @@
 # ==========================================
 # Etapa 1: Build y compilación (Builder)
 # ==========================================
-FROM maven:3.9.9-eclipse-temurin-17-alpine AS builder
+FROM maven:3.9.11-eclipse-temurin-17 AS builder
 
 WORKDIR /build
 
@@ -18,13 +18,13 @@ RUN mvn -B -ntp clean package -DskipTests
 # ==========================================
 # Etapa 2: Entorno de ejecución ligero (Runner)
 # ==========================================
-FROM eclipse-temurin:17-jre-alpine AS runner
+FROM eclipse-temurin:17-jre-noble AS runner
 
 WORKDIR /app
 
 # Crear usuario y grupo de sistema sin privilegios (Seguridad: No-root user)
-RUN addgroup -S -g 10001 appgroup && \
-    adduser -S -u 10001 -G appgroup appuser
+RUN groupadd --system --gid 10001 appgroup && \
+    useradd --system --uid 10001 --gid appgroup --no-create-home appuser
 
 # Copiar el artefacto ejecutable con permisos restringidos
 COPY --from=builder --chown=appuser:appgroup /build/target/alert-management-*.jar app.jar

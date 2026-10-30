@@ -27,8 +27,13 @@ RUN npm run build
 # ==========================================
 FROM nginx:1.27-alpine-slim AS runner
 
-# Copiar configuración optimizada de Nginx con reverse proxy
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Plantilla de Nginx con reverse proxy; envsubst la renderiza al arrancar
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+
+# Upstreams por defecto (DNS de Compose); sobrescribir en Azure Container Apps
+ENV REGISTRY_UPSTREAM=http://monitoring-registry:8080 \
+    TELEMETRY_UPSTREAM=http://telemetry-ingestion:8081 \
+    ALERTS_UPSTREAM=http://alert-management:8082
 
 # Copiar los archivos estáticos generados por el builder
 COPY --from=builder /app/dist /usr/share/nginx/html

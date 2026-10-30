@@ -1,3 +1,7 @@
+# Rendered at container start by the nginx image (envsubst on /etc/nginx/templates).
+# Upstreams are configurable so the same image runs under Docker Compose and Azure
+# Container Apps. Host is set to the upstream host because Container Apps ingress
+# routes internal traffic by Host header.
 server {
     listen 80;
     server_name localhost;
@@ -16,9 +20,10 @@ server {
 
     # Reverse proxy: Monitoring Registry
     location /registry/ {
-        proxy_pass http://monitoring-registry:8080/;
+        proxy_pass ${REGISTRY_UPSTREAM}/;
         proxy_http_version 1.1;
-        proxy_set_header Host $host;
+        proxy_ssl_server_name on;
+        proxy_set_header Host $proxy_host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -26,9 +31,10 @@ server {
 
     # Reverse proxy: Telemetry Ingestion
     location /telemetry/ {
-        proxy_pass http://telemetry-ingestion:8081/;
+        proxy_pass ${TELEMETRY_UPSTREAM}/;
         proxy_http_version 1.1;
-        proxy_set_header Host $host;
+        proxy_ssl_server_name on;
+        proxy_set_header Host $proxy_host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -36,9 +42,10 @@ server {
 
     # Reverse proxy: Alert Management
     location /alerts/ {
-        proxy_pass http://alert-management:8082/;
+        proxy_pass ${ALERTS_UPSTREAM}/;
         proxy_http_version 1.1;
-        proxy_set_header Host $host;
+        proxy_ssl_server_name on;
+        proxy_set_header Host $proxy_host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -49,4 +56,3 @@ server {
         root /usr/share/nginx/html;
     }
 }
-
