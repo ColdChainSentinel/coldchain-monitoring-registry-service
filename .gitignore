@@ -10,8 +10,5 @@ dist/
 *.tsbuildinfo
 .env.*
 !.env.example
-__pycache__/
-*.pyc
-.venv/
-.python_packages/
-local.settings.json
+agile.md
+capitulo-3.md

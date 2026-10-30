@@ -1,4 +1,7 @@
-target
-.git
-.env
-docs
+target/
+.mvn/
+.git/
+.gitignore
+.idea/
+*.iml
+*.log
