@@ -96,3 +96,14 @@ No reemplaza una ejecución con JDK 17 ni el run remoto en Actions.
 - Trivy 0.70.0 local (`fs`, HIGH/CRITICAL, sin hallazgos sin corrección): CVE-2026-54291
   (HIGH) en `org.postgresql:postgresql` 42.7.11 en los tres servicios, corregido en 42.7.12.
   El job `trivy` fallará hasta actualizar la dependencia.
+
+## Remediación DevSecOps (30 de octubre de 2026)
+
+Sobre `develop` actualizado (incluye Terraform y la Function). Trivy 0.70.0 local con el
+mismo gate del CI (`--ignore-unfixed`, HIGH/CRITICAL, `.trivyignore.yaml`): código de salida 0.
+
+- pgjdbc 42.7.14: `mvnw -Pacceptance clean verify` BUILD SUCCESS (28/93/93) y suite integrada
+  PostgreSQL 28/28; el JAR de Telemetry empaqueta `postgresql-42.7.14.jar`.
+- Frontend sin root: imagen construida localmente; `id` dentro del contenedor devuelve
+  `uid=101(nginx)` y la SPA responde 200 en `/` y en rutas profundas por el puerto 8080.
+- AZU-0012 queda como excepción con vencimiento 2027-03-31.
