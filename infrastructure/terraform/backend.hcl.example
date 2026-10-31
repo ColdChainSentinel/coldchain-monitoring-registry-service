@@ -1,0 +1,5 @@
+resource_group_name  = "rg-coldchain-tfstate"
+storage_account_name = "<nombre-de-la-cuenta>"
+container_name       = "tfstate"
+key                  = "coldchain-dev.tfstate"
+use_azuread_auth     = true

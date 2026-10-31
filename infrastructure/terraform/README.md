@@ -41,7 +41,12 @@ for p in Microsoft.App Microsoft.OperationalInsights Microsoft.DBforPostgreSQL \
 
 1. Variables: copiar `terraform.tfvars.example` a `terraform.tfvars` (ignorado por Git) y
    completar suscripción, correo del presupuesto, IP pública del operador y `image_tag`.
-2. Imágenes `linux/amd64` (la etapa de build corre nativa, así que es rápido en ARM):
+2. Backend: copiar `backend.hcl.example` a `backend.hcl` (ignorado por Git) y completar el
+   nombre de la cuenta de almacenamiento. El estado vive en Azure Blob Storage
+   (`rg-coldchain-tfstate`), con autenticación de Entra ID y bloqueo por *lease*; hace falta
+   el rol **Storage Blob Data Contributor** sobre la cuenta (ver
+   [estado remoto de Terraform](../../docs/architecture/terraform-remote-state.md)).
+3. Imágenes `linux/amd64` (la etapa de build corre nativa, así que es rápido en ARM):
 
 ```sh
 TAG=$(git rev-parse --short=12 HEAD)
@@ -51,15 +56,18 @@ done
 docker buildx build --platform linux/amd64 -t ghcr.io/coldchainsentinel/frontend:$TAG --push frontend
 ```
 
-3. Infraestructura:
+4. Infraestructura:
 
 ```sh
-terraform init
+terraform init -backend-config=backend.hcl
 terraform apply
 terraform output frontend_url
 ```
 
-4. Código del simulador (Terraform solo crea el host):
+   El plan siempre muestra `transport = "HTTP"` en las sondas: el entorno Express omite ese
+   campo en su respuesta, y ignorarlo convertiría las sondas en TCP. Es un diff cosmético.
+
+5. Código del simulador (Terraform solo crea el host):
 
 ```sh
 cd ../../functions/telemetry-simulator
@@ -105,8 +113,9 @@ thermal_rules = {
   conexiones desde cualquier tenant de Azure; la protección son las contraseñas de 32
   caracteres y TLS. Una VNet con acceso privado eliminaría esa exposición.
 - JDBC usa `sslmode=require` (cifra, pero no valida el certificado del servidor).
-- El estado de Terraform es local y contiene contraseñas: nunca versionarlo
-  (`*.tfstate` está en `.gitignore`). La migración a un backend remoto está pendiente y
-  documentada en [estado remoto de Terraform](../../docs/architecture/terraform-remote-state.md).
+- El estado de Terraform contiene contraseñas: nunca versionarlo (`*.tfstate` está en
+  `.gitignore`). El backend remoto ya está declarado, pero la migración del estado
+  existente (pasos 4 y 5 de [estado remoto de Terraform](../../docs/architecture/terraform-remote-state.md))
+  sigue pendiente: hasta entonces, nadie debe ejecutar `apply` desde otra máquina.
 - El simulador tiene un timeout máximo de 30 s, menor que un arranque en frío; su primera
   ejecución tras inactividad puede fallar sin reintento (comportamiento del contrato).
