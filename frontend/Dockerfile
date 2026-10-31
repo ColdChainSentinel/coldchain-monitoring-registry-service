@@ -25,7 +25,8 @@ RUN npm run build
 # ==========================================
 # Etapa 2: Servidor web de producción (Runner)
 # ==========================================
-FROM nginx:1.27-alpine-slim AS runner
+# Imagen sin privilegios: Nginx corre como el usuario nginx (UID 101) y escucha en 8080.
+FROM nginxinc/nginx-unprivileged:1.27-alpine-slim AS runner
 
 # Plantilla de Nginx con reverse proxy; envsubst la renderiza al arrancar
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
@@ -38,7 +39,9 @@ ENV REGISTRY_UPSTREAM=http://monitoring-registry:8080 \
 # Copiar los archivos estáticos generados por el builder
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-EXPOSE 80
+USER nginx
+
+EXPOSE 8080
 
 CMD ["nginx", "-g", "daemon off;"]
 

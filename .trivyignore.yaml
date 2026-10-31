@@ -1,0 +1,11 @@
+# Excepciones aceptadas del gate de Trivy. Cada una requiere motivo y fecha de revisión;
+# al vencer expired_at el hallazgo vuelve a fallar el pipeline.
+misconfigurations:
+  - id: AZU-0012
+    paths:
+      - "infrastructure/terraform/function.tf"
+    statement: >-
+      La Function Flex Consumption y Terraform acceden a la Storage Account por red pública.
+      Denegar por defecto exige VNet con private endpoints, fuera del presupuesto de Azure
+      for Students. Mitigación: TLS 1.2, contenedor privado y sin blobs públicos.
+    expired_at: 2027-03-31

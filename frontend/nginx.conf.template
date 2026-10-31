@@ -4,7 +4,7 @@
 # routes internal traffic by Host header. The read timeout covers chained cold
 # starts when the APIs scale from zero (Container Apps ingress allows 240 s).
 server {
-    listen 80;
+    listen 8080;
     server_name localhost;
 
     root /usr/share/nginx/html;

@@ -1,0 +1,97 @@
+name: ColdChain DevSecOps
+
+# Sin filtros de rutas: cualquier cambio (código, frontend, Terraform, excepciones) se escanea.
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: devsecops-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trivy:
+    name: Security scan - Trivy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      # Acciones de terceros fijadas por SHA: los tags pueden reescribirse.
+      - name: Trivy report for code scanning
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.70.0
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          skip-dirs: frontend/node_modules
+          format: sarif
+          output: trivy-results.sarif
+          exit-code: '0'
+      - name: Publish Trivy results to GitHub code scanning
+        if: always() && hashFiles('trivy-results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@4bfa242aa49c5f7c6770b98670d354a7dfac05f8 # v3.39.1
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy
+      - name: Fail on fixable HIGH or CRITICAL findings
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.70.0
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          skip-dirs: frontend/node_modules
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          # Excepciones con motivo y vencimiento; el reporte SARIF las sigue mostrando.
+          trivyignores: .trivyignore.yaml
+          format: table
+          exit-code: '1'
+          skip-setup-trivy: true
+
+  sonar:
+    name: Code quality - Sonar
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}
+      SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION }}
+      SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY || 'ColdChainSentinel_coldchain-monitoring-registry-service' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Cache Sonar packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Missing Sonar configuration
+        if: env.SONAR_TOKEN == ''
+        run: echo "::warning title=Sonar no ejecutado::Falta el secreto SONAR_TOKEN; configurar SONAR_TOKEN y las variables SONAR_* del repositorio."
+      # JaCoCo se añade por línea de comandos para medir cobertura en los tres servicios sin cambiar sus pom.
+      - name: Build, test and analyze
+        if: env.SONAR_TOKEN != ''
+        run: |
+          args=(-Dsonar.host.url="$SONAR_HOST_URL" -Dsonar.projectKey="$SONAR_PROJECT_KEY" -Dsonar.qualitygate.wait=true)
+          if [ -n "$SONAR_ORGANIZATION" ]; then args+=(-Dsonar.organization="$SONAR_ORGANIZATION"); fi
+          sh mvnw -B -ntp -Pacceptance \
+            org.jacoco:jacoco-maven-plugin:0.8.13:prepare-agent verify org.jacoco:jacoco-maven-plugin:0.8.13:report \
+            org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar "${args[@]}"
