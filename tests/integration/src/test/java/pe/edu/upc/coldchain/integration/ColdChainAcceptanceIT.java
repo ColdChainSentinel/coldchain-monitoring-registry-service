@@ -12,4 +12,6 @@ import org.junit.platform.suite.api.Suite;
 @ConfigurationParameter(key = "cucumber.plugin", value = "pretty,html:target/cucumber/flow.html,json:target/cucumber/flow.json,junit:target/cucumber/flow.xml")
 @ConfigurationParameter(key = "cucumber.execution.parallel.enabled", value = "false")
 @ConfigurationParameter(key = "cucumber.publish.enabled", value = "false")
+@ConfigurationParameter(key = "cucumber.junit-platform.naming-strategy", value = "short")
+@ConfigurationParameter(key = "cucumber.junit-platform.naming-strategy.short.example-name", value = "pickle")
 public class ColdChainAcceptanceIT { }

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.After;
 import io.cucumber.java.AfterAll;
+import io.cucumber.java.Before;
 import io.cucumber.java.BeforeAll;
 import io.cucumber.java.es.Cuando;
 import io.cucumber.java.es.Dado;
@@ -24,6 +25,10 @@ public class IntegratedSteps {
     private static final ServiceStack STACK = new ServiceStack();
     private String point;
     private int initialMeasurements;
+    private int initialAlerts;
+    private BigDecimal expectedMin = new BigDecimal("2");
+    private BigDecimal expectedMax = new BigDecimal("8");
+    private JsonNode previousMeasurement;
     private ServiceStack.Reply telemetryReply;
     private ServiceStack.Reply alertsReply;
     private JsonNode measurement;
@@ -40,14 +45,45 @@ public class IntegratedSteps {
         STACK.close();
     }
 
+    @Before("@requiere_postgres")
+    public void requirePersistentDatabase() {
+        // H2 loses data when a process restarts; these scenarios must be excluded, never passed in H2.
+        assertEquals("postgres", STACK.mode(), "Escenario @requiere_postgres ejecutado sin PostgreSQL");
+    }
+
     @After
     public void restoreAvailability() throws Exception {
+        STACK.startRegistry();
         STACK.startAlerts();
+        STACK.restoreRules();
     }
 
     @Dado("un punto de monitoreo con regla térmica de 2 a 8 grados Celsius")
     public void configuredPoint() throws Exception {
         selectPoint(STACK.point);
+    }
+
+    @Dado("un punto de monitoreo con regla térmica propia de 2 a 8 grados Celsius")
+    public void versionedPoint() throws Exception {
+        selectPoint(STACK.versionPoint);
+    }
+
+    @Dado("un punto nuevo sin mediciones")
+    public void newPoint() throws Exception {
+        selectPoint(STACK.createPoint(newCode()));
+        assertEquals(0, initialMeasurements);
+    }
+
+    @Dado("otro punto nuevo con una medición de {bigdecimal} grados Celsius")
+    public void otherPointWithMeasurement(BigDecimal temperature) throws Exception {
+        String other = STACK.createPoint(newCode());
+        var reply = STACK.telemetry("POST", "/api/measurements",
+                Map.of("monitoringPointId", other, "temperature", temperature, "timestamp", "2026-10-01T12:05:00Z"));
+        assertEquals(201, reply.status(), reply.body().toString());
+    }
+
+    private static String newCode() {
+        return "IT-H-" + UUID.randomUUID().toString().substring(0, 8);
     }
 
     @Dado("un punto existente sin regla térmica")
@@ -63,6 +99,7 @@ public class IntegratedSteps {
     private void selectPoint(String id) throws Exception {
         point = id;
         initialMeasurements = measurements().size();
+        initialAlerts = alerts().size();
     }
 
     @Cuando("envío la siguiente medición para el punto:")
@@ -79,6 +116,7 @@ public class IntegratedSteps {
     }
 
     private void sendMeasurement(BigDecimal temperature, String timestamp) throws Exception {
+        previousMeasurement = measurement;
         telemetryReply = STACK.telemetry("POST", "/api/measurements",
                 Map.of("monitoringPointId", point, "temperature", temperature, "timestamp", timestamp));
         if (telemetryReply.status() == 201) {
@@ -88,6 +126,28 @@ public class IntegratedSteps {
             assertEquals(Instant.parse(timestamp), Instant.parse(measurement.path("timestamp").asText()));
             UUID.fromString(measurement.path("id").asText());
         }
+    }
+
+    @Cuando("registro las siguientes mediciones en este orden:")
+    public void postSequence(DataTable table) throws Exception {
+        for (var row : table.asMaps(String.class, String.class)) {
+            sendMeasurement(new BigDecimal(row.get("temperature")), row.get("timestamp"));
+            telemetryStatus(201);
+        }
+    }
+
+    @Cuando("envío una medición para el punto con temperatura {} y fecha {}")
+    public void postRaw(String temperature, String timestamp) throws Exception {
+        // Literal JSON values: rejected types must reach Telemetry exactly as written.
+        JsonNode body = ServiceStack.JSON.readTree("{\"monitoringPointId\":\"" + point + "\",\"temperature\":"
+                + temperature + ",\"timestamp\":" + timestamp + "}");
+        telemetryReply = STACK.telemetry("POST", "/api/measurements", body);
+    }
+
+    @Cuando("envío una medición con el identificador de punto {string}")
+    public void postWithPointId(String id) throws Exception {
+        telemetryReply = STACK.telemetry("POST", "/api/measurements",
+                Map.of("monitoringPointId", id, "temperature", 5, "timestamp", "2026-10-01T12:00:00Z"));
     }
 
     @Cuando("envío una medición sin datos")
@@ -135,11 +195,8 @@ public class IntegratedSteps {
     @Entonces("existen {int} alertas de tipo {string} asociadas a la medición")
     public void alertCount(int expected, String type) throws Exception {
         assertNotNull(measurement);
-        var response = STACK.alerts("GET", "/api/alerts?monitoringPointId=" + point, null);
-        assertEquals(200, response.status());
-        assertTrue(response.body().isArray());
         List<JsonNode> matches = new ArrayList<>();
-        for (JsonNode alert : response.body()) {
+        for (JsonNode alert : alerts()) {
             if (alert.path("measurementId").asText().equals(measurement.path("id").asText())) {
                 matches.add(alert);
             }
@@ -149,12 +206,120 @@ public class IntegratedSteps {
             UUID.fromString(alert.path("id").asText());
             assertEquals(point, alert.path("monitoringPointId").asText());
             assertEquals(0, measurement.path("temperature").decimalValue().compareTo(alert.path("temperature").decimalValue()));
-            assertEquals(0, new BigDecimal("2").compareTo(alert.path("thresholdMin").decimalValue()));
-            assertEquals(0, new BigDecimal("8").compareTo(alert.path("thresholdMax").decimalValue()));
+            assertLimits(alert, expectedMin, expectedMax);
             assertEquals("OPEN", alert.path("status").asText());
             assertEquals(type, alert.path("type").asText());
             Instant.parse(alert.path("createdAt").asText());
         }
+    }
+
+    @Entonces("se informa el motivo del rechazo")
+    public void rejectionReason() {
+        assertFalse(telemetryReply.body().path("detail").asText().isBlank(), telemetryReply.body().toString());
+    }
+
+    @Entonces("no se generan alertas nuevas para el punto")
+    public void noNewAlerts() throws Exception {
+        assertEquals(initialAlerts, alerts().size());
+    }
+
+    @Entonces("el historial del punto contiene {int} mediciones ordenadas por fecha de medición:")
+    public void history(int expected, DataTable table) throws Exception {
+        JsonNode saved = measurements();
+        var rows = table.asMaps(String.class, String.class);
+        assertEquals(expected, rows.size());
+        assertEquals(expected, saved.size());
+        for (int i = 0; i < rows.size(); i++) {
+            assertEquals(point, saved.get(i).path("monitoringPointId").asText());
+            assertEquals(0, new BigDecimal(rows.get(i).get("temperature")).compareTo(saved.get(i).path("temperature").decimalValue()));
+            assertEquals(rows.get(i).get("timestamp"), saved.get(i).path("timestamp").asText());
+        }
+    }
+
+    @Entonces("la medición más reciente del punto tiene temperatura {bigdecimal}")
+    public void latest(BigDecimal temperature) throws Exception {
+        JsonNode saved = measurements();
+        assertFalse(saved.isEmpty());
+        assertEquals(0, temperature.compareTo(saved.get(saved.size() - 1).path("temperature").decimalValue()));
+    }
+
+    @Entonces("el historial del punto está vacío")
+    public void emptyHistory() throws Exception {
+        assertTrue(measurements().isEmpty());
+    }
+
+    @Cuando("solicito a Alerts evaluar una medición nueva de {bigdecimal} grados Celsius")
+    public void evaluateDirectly(BigDecimal temperature) throws Exception {
+        alertsReply = STACK.alerts("POST", "/api/alerts/evaluate", Map.of("measurementId", UUID.randomUUID().toString(),
+                "monitoringPointId", point, "temperature", temperature, "timestamp", "2026-10-01T12:00:00Z"));
+    }
+
+    @Cuando("solicito a Alerts evaluar una petición sin datos")
+    public void evaluateEmpty() throws Exception {
+        alertsReply = STACK.alerts("POST", "/api/alerts/evaluate", Map.of());
+    }
+
+    @Entonces("Alerts informa el código {string}")
+    public void alertsCode(String code) {
+        assertEquals(code, alertsReply.body().path("code").asText());
+    }
+
+    @Entonces("Alerts identifica los campos obligatorios:")
+    public void alertsRequiredFields(DataTable table) {
+        for (var row : table.asMaps(String.class, String.class)) {
+            assertFalse(alertsReply.body().path("fields").path(row.get("campo")).asText().isBlank(), row.get("campo"));
+        }
+    }
+
+    @Cuando("la regla térmica del punto cambia a {bigdecimal} a {bigdecimal} grados Celsius")
+    public void changeRule(BigDecimal min, BigDecimal max) throws Exception {
+        STACK.changeRule(point, min, max);
+        expectedMin = min;
+        expectedMax = max;
+    }
+
+    @Entonces("la alerta anterior conserva los límites de {bigdecimal} a {bigdecimal} grados Celsius")
+    public void previousAlertLimits(BigDecimal min, BigDecimal max) throws Exception {
+        assertNotNull(measurement);
+        assertLimits(alertFor(measurement), min, max);
+    }
+
+    @Entonces("la nueva alerta usa los límites de {bigdecimal} a {bigdecimal} grados Celsius")
+    public void newAlertLimits(BigDecimal min, BigDecimal max) throws Exception {
+        assertNotNull(previousMeasurement);
+        assertLimits(alertFor(measurement), min, max);
+        assertFalse(alertFor(previousMeasurement).path("id").equals(alertFor(measurement).path("id")));
+    }
+
+    @Dado("Registry deja de estar disponible")
+    public void stopRegistry() {
+        STACK.stopRegistry();
+    }
+
+    @Cuando("Registry vuelve a estar disponible")
+    public void recoverRegistry() throws Exception {
+        STACK.startRegistry();
+    }
+
+    private JsonNode alertFor(JsonNode source) throws Exception {
+        for (JsonNode alert : alerts()) {
+            if (alert.path("measurementId").asText().equals(source.path("id").asText())) {
+                return alert;
+            }
+        }
+        throw new AssertionError("No existe alerta para la medición " + source.path("id").asText());
+    }
+
+    private static void assertLimits(JsonNode alert, BigDecimal min, BigDecimal max) {
+        assertEquals(0, min.compareTo(alert.path("thresholdMin").decimalValue()), alert.toString());
+        assertEquals(0, max.compareTo(alert.path("thresholdMax").decimalValue()), alert.toString());
+    }
+
+    private JsonNode alerts() throws Exception {
+        var reply = STACK.alerts("GET", "/api/alerts?monitoringPointId=" + point, null);
+        assertEquals(200, reply.status());
+        assertTrue(reply.body().isArray());
+        return reply.body();
     }
 
     @Entonces("se informan los campos obligatorios de la medición:")

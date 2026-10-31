@@ -7,7 +7,8 @@ normal, para que los desarrolladores no necesiten Docker al compilar servicios.
 
 ## Qué verifica
 
-Doce escenarios (contando las cinco filas del esquema de límites):
+Veintiocho escenarios (contando cada fila de los esquemas). Los dos marcados
+`@requiere_postgres` solo se ejecutan en el modo PostgreSQL:
 
 | Historia / alcance | Casos |
 |---|---|
@@ -17,6 +18,13 @@ Doce escenarios (contando las cinco filas del esquema de límites):
 | HU-19 / CA-03 | RULE_NOT_CONFIGURED sin inventar alerta |
 | Contrato de evaluación | Replay devuelve resultado/alerta originales; otros datos con mismo ID responden 409 |
 | Resiliencia | Alerts caído: 201/PENDING; reevaluación externa sin duplicar ingesta; Telemetry permanece PENDING |
+| HU-13 / CA-01 y CA-03, parcial | Siete formas de temperatura o fecha inválidas: 400 con motivo, sin medición ni alertas |
+| HU-13 / CA-02, contrato | Identificador de punto mal formado: 400 sin incorporar datos |
+| HU-14 / CA-02 y HU-18 / CA-01, parcial | Medición retrasada se intercala por fecha de medición; la más reciente no cambia; aislamiento entre puntos |
+| HU-18 / CA-03, contrato | Punto sin mediciones devuelve historial vacío |
+| Contrato de Alerts | Sin regla: 422 `THERMAL_RULE_NOT_CONFIGURED`; punto inexistente: 404; sin datos: 400 por campo |
+| HU-10 / CA-03, parcial (`@requiere_postgres`) | Tras reiniciar Alerts con otra regla, la alerta anterior conserva 2–8 y la nueva usa 3–7 |
+| Resiliencia (`@requiere_postgres`) | Registry caído: Telemetry responde 503 y no guarda la medición |
 
 **Alcance parcial:** HU-12 aún no valida dispositivo activo, unidad explícita ni fecha
 de recepción (CA-02). HU-19 no expone dispositivo en la alerta. Estos tests no acreditan
@@ -59,7 +67,10 @@ base H2 aislada dentro de cada JVM. No equivale a validar PostgreSQL.
 .\mvnw.cmd -B -ntp -f tests/integration/pom.xml "-Dintegration.database=h2" clean verify
 ```
 
-Con H2 los datos de Alerts se pierden al reiniciar ese proceso. El escenario de caída
+El perfil Maven `h2` se activa con `-Dintegration.database=h2` y filtra
+`@integracion and not @requiere_postgres`: los dos escenarios excluidos aparecen como
+omitidos en el reporte, no como aprobados. Si alguno se ejecutara con H2, un hook lo hace
+fallar. Con H2 los datos de Alerts se pierden al reiniciar ese proceso. El escenario de caída
 solo exige recuperar la medición nueva de ese escenario. La persistencia de alertas
 previas tras reinicios requiere el modo PostgreSQL; este incremento no la acredita.
 

@@ -1,7 +1,11 @@
-# Acceptance Testing — primer incremento HU-04
+# Acceptance Testing
 
-Suite BDD ejecutable para EP-02 / HU-04, con data tables. Se conservan los tres
-criterios de `docs/hu04.feature`, única fuente del feature. Maven copia ese archivo
+Matriz completa de las 36 HU al final de esta guía.
+
+## Primer incremento: HU-04
+
+Suite BDD ejecutable para EP-02 / HU-04, con data tables. Los ocho escenarios cubren los
+tres criterios de `docs/hu04.feature`, única fuente del feature. Maven copia ese archivo
 al classpath; no mantener otra copia editable. Runner y pasos viven en esta carpeta
 del monorepo y se compilan mediante el perfil optativo `acceptance` de Registry.
 
@@ -15,7 +19,7 @@ Registry, PostgreSQL, Docker, Telemetry, Alerts ni frontend. Desde la raíz:
 ```
 
 Linux/macOS: `sh mvnw -B -ntp -pl services/monitoring-registry -Pacceptance clean verify`.
-Ejecuta los 20 tests previos y los 3 escenarios Cucumber, además de Checkstyle y gate
+Ejecuta los 20 tests previos y los 8 escenarios Cucumber, además de Checkstyle y gate
 JaCoCo. Para solo los escenarios, usar `-Dtest=Hu04AcceptanceTest` con `test` en lugar
 de `verify`. Usar `clean` al cambiar entre perfiles para eliminar clases de pruebas
 compiladas anteriormente. La compilación normal no añade dependencias Cucumber.
@@ -32,8 +36,11 @@ base compartida: el borrado forma parte del aislamiento de pruebas.
 | Historia / criterio | Escenario | Comprobaciones |
 |---|---|---|
 | HU-04 / CA-01 | Registrar punto válido | 201, UUID, Location, datos enviados, GET individual y listado |
+| HU-04 / CA-01 | Un punto por tipo (ALMACENAMIENTO, TRANSPORTE) | 201 y consulta para ambos tipos admitidos |
+| HU-04 / CA-01 | Tipo no admitido (contrato) | 400 con los tipos válidos, sin guardar |
 | HU-04 / CA-02 | Código duplicado | 409, mensaje, unicidad sin sobrescribir el punto original; incluye mayúsculas/minúsculas |
 | HU-04 / CA-03 | Datos ausentes | 400, mensajes para code/name/type y listado vacío |
+| HU-04 / CA-03 | Falta code o name | 400 identifica el campo y no guarda |
 
 Las tablas de datos de entrada y de campos obligatorios son DataTables consumidas
 por los pasos Java; no se confunden con las tablas `Ejemplos` de Scenario Outline.
@@ -56,7 +63,7 @@ comprobarse después de subir la rama: añadir YAML no acredita un run aprobado.
 
 Se incorporaron a `specifications/ep03/` los tres diseños del informe con etiquetas
 `@pendiente @no_implementado`. No se copian al classpath ejecutable ni los selecciona
-el runner HU-04. No hay pasos vacíos, mocks que simulen su aprobación ni escenarios
+ningún runner. No hay pasos vacíos, mocks que simulen su aprobación ni escenarios
 omitidos contados como aceptación completada.
 
 | Historia | Archivo | Impedimento / decisión pendiente |
@@ -85,3 +92,56 @@ no el runner HU-04. Hay modo PostgreSQL/Testcontainers por defecto y H2 explíci
 La ejecución de HU-04 conserva sus tres escenarios y su base aislada.
 Los diseños EP03 continúan pendientes. Consultar la guía de integración para los
 comandos, resultados por modo y faltantes funcionales.
+
+## Tercer incremento: cobertura de todas las HU
+
+Se ampliaron los escenarios ejecutables donde el MVP ya tiene comportamiento real y se
+escribieron especificaciones pendientes para el resto de criterios. Regla aplicada: un
+escenario solo es ejecutable si prueba comportamiento existente; nunca se aserta un
+comportamiento actual que contradiga un CA (por ejemplo, una alerta por cada medición
+fuera de rango contradice HU-20/CA-01).
+
+- Ejecutables nuevos (suite integrada): `features/ep04/calidad_mediciones.feature`,
+  `historial_mediciones.feature`, `resiliencia_registry.feature`,
+  `features/ep06/contrato_evaluacion.feature` y `limites_originales.feature`.
+- Pendientes nuevos: `specifications/ep01` a `ep09`, un archivo por HU (o
+  `*_pendiente.feature` con solo los CA que faltan en HU con alcance parcial).
+  Todos llevan `@pendiente @no_implementado` y no tienen step definitions.
+- Validación de sintaxis de los pendientes (sin ejecutarlos):
+  `java -cp <classpath de tests/integration> io.cucumber.core.cli.Main --dry-run --glue none tests/acceptance/specifications`.
+  Resultado local: 144 escenarios analizados, todos `undefined`, sin errores de parseo.
+
+En Gherkin `# language: es`, Cucumber interpreta `{bigdecimal}` con coma decimal: escribir
+`7,5` en el texto de un paso. Las tablas de datos se leen con `new BigDecimal` y usan punto.
+
+### Matriz de trazabilidad
+
+Leyenda: **E** ejecutable y aprobado; **P** parcial (ejecuta lo implementado, el resto
+en pendiente); **D** solo diseño pendiente.
+
+| HU | Estado | Ejecutable | Pendiente |
+|---|---|---|---|
+| HU-01 a HU-03 | D | — | `specifications/ep01/` |
+| HU-04 | E | `docs/hu04.feature` (CA-01..03) | — |
+| HU-05 a HU-08 | D | — | `specifications/ep02/` |
+| HU-09 | D | Límites inclusivos usados por reglas externas en `ep06/desviaciones.feature` | `ep03/rangos_temperatura.feature` |
+| HU-10 | P | CA-03 (snapshot de límites) en `ep06/limites_originales.feature`, solo PostgreSQL | `ep03/versiones_rangos.feature` |
+| HU-11 | D | — | `ep03/intervalos_comunicacion.feature` |
+| HU-12 | P | CA-01 sin dispositivo/unidad, CA-03 (`ep04/mediciones.feature`) | CA-01 completo, CA-02 (`ep04/hu12_recepcion_pendiente.feature`) |
+| HU-13 | P | CA-01 temperatura/fecha, CA-03 sin alertas (`ep04/calidad_mediciones.feature`) | dispositivo, unidad, motivo registrado (`ep04/hu13_calidad_pendiente.feature`) |
+| HU-14 | P | CA-01/CA-03 en Alerts, CA-02 historial (`ep06/desviaciones.feature`, `ep04/historial_mediciones.feature`) | Telemetry por ID de medición, dashboard (`ep04/hu14_duplicados_pendiente.feature`) |
+| HU-15 | D | — | `ep04/hu15_comunicacion.feature` |
+| HU-16, HU-17 | D | — | `specifications/ep05/` |
+| HU-18 | P | CA-01 por punto ordenado, CA-03 vacío (`ep04/historial_mediciones.feature`) | dispositivo, período, columnas (`ep05/hu18_historial_pendiente.feature`) |
+| HU-19 | P | CA-01, CA-03 y CA-02 sin dispositivo (`ep06/desviaciones.feature`, `ep06/contrato_evaluacion.feature`) | dispositivo en la alerta (`ep06/hu19_desviaciones_pendiente.feature`) |
+| HU-20 a HU-24 | D | — | `specifications/ep06/` |
+| HU-25 a HU-27 | D | — | `specifications/ep07/` |
+| HU-28 a HU-34 | D | — | `specifications/ep08/` |
+| HU-35, HU-36 | D | — | `specifications/ep09/` |
+
+### Observaciones para el backlog
+
+- HU-20/CA-01: el MVP crea una alerta por medición fuera de rango; no agrupa eventos.
+- HU-23/CA-02: Alerts lista en orden ascendente de creación; el CA pide el inverso.
+- HU-09/CA-02: las reglas externas admiten mínimo igual a máximo; el CA lo rechaza.
+- HU-14/CA-01: Telemetry no recibe un identificador de medición propio; reenviar crea otra.

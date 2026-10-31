@@ -79,3 +79,20 @@ la ejecución en GitHub Actions sigue pendiente del push y del run remoto.
 
 Este arranque correcto no demuestra que el fallo de Docker no pueda reaparecer.
 No fue necesario reinstalar Docker para ejecutar esta verificación.
+
+## Tercer incremento (30 de octubre de 2026)
+
+Entorno local: OpenJDK 27 compilando con `release 17`, Maven Wrapper 3.9.11 y Docker Engine 29.6.1.
+No reemplaza una ejecución con JDK 17 ni el run remoto en Actions.
+
+- `mvnw -B -ntp -Pacceptance clean verify`: BUILD SUCCESS. Registry 28 (20 JUnit + 8
+  escenarios HU-04), Telemetry 93 y Alerts 93, sin fallos, errores ni omitidos.
+- `mvnw -B -ntp -f tests/integration/pom.xml clean verify` (PostgreSQL): 28 escenarios,
+  0 fallos, 0 errores, 0 omitidos; `environment.txt` con `database=postgres`.
+- Mismo comando con `-Dintegration.database=h2`: 26 aprobados y 2 omitidos por el filtro
+  `not @requiere_postgres`.
+- Dry-run de `tests/acceptance/specifications`: 144 escenarios analizados, sin errores
+  de sintaxis; no se ejecutan.
+- Trivy 0.70.0 local (`fs`, HIGH/CRITICAL, sin hallazgos sin corrección): CVE-2026-54291
+  (HIGH) en `org.postgresql:postgresql` 42.7.11 en los tres servicios, corregido en 42.7.12.
+  El job `trivy` fallará hasta actualizar la dependencia.
