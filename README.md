@@ -19,13 +19,13 @@ infrastructure/
   terraform/            # Despliegue Azure (Container Apps, PostgreSQL, Function)
   kubernetes/           # Reservado para el equipo
 tests/
-  acceptance/           # Reservado
-  integration/          # Reservado
+  acceptance/           # HU-04 automatizada + diseños EP03 pendientes
+  integration/          # Aceptación HTTP entre servicios, PostgreSQL/H2
 docs/
   architecture/         # Guía de integración y verificación
   api-contracts/        # OpenAPI iniciales versionados
   evidence/             # Evidencias históricas originales
-.github/workflows/      # CI original de Registry, solo rutas adaptadas
+.github/workflows/      # CI de Registry + aceptación HU-04
 docker-compose.yml      # Orquestación local ejecutable (ver sección Docker Compose)
 config/alerts/          # Plantilla de reglas térmicas para Compose local
 pom.xml                 # Agregador opcional de los tres proyectos independientes
@@ -203,6 +203,26 @@ de Telemetry: [README del servicio](services/telemetry-ingestion/README.md) y
 [documentación](docs/architecture/telemetry-ingestion.md).
 No se debe exponer el MVP públicamente sin controles de acceso acordados.
 
+Resultados históricos de fase 1: [verificación](docs/architecture/verification.md).
+Implementación y verificación de Telemetry: [documentación](docs/architecture/telemetry-ingestion.md).
+Implementación y verificación de Alerts: [documentación](docs/architecture/alert-management.md).
+Flujo completo React → servicios → PostgreSQL, reinicios y resultados actuales:
+[integración funcional del MVP](docs/architecture/mvp-integration.md).
+
+## Aceptación automatizada (HU-04)
+
+Desde la raíz: `.\mvnw.cmd -B -ntp -pl services/monitoring-registry -Pacceptance clean verify`.
+Ejecuta los tests actuales de Registry y tres escenarios Cucumber con tablas de datos.
+Reportes y pendientes EP03: [tests/acceptance](tests/acceptance/README.md).
+El workflow independiente `ColdChain Acceptance` conserva el CI original y publica los
+reportes. Su ejecución remota se verificará después de subir la rama.
+
+Aceptación integrada de mediciones/alertas (12 escenarios, alcance parcial de HU-12
+y HU-19): [ejecución PostgreSQL y H2](tests/integration/README.md). El modo PostgreSQL
+requiere Docker activo; H2 es una comprobación explícita distinta, no un reemplazo
+silencioso de PostgreSQL. El workflow incluye un job PostgreSQL pendiente de validación remota.
+
+Verificación local de aceptación integrada: 12/12 escenarios aprobados con PostgreSQL/Testcontainers, además de la ejecución previa H2. [Evidencia](docs/evidence/acceptance/integrated-local.md). El resultado remoto en Actions sigue pendiente.
 Resultados de esta entrega: [verificación](docs/architecture/verification.md).
 Despliegue en Azure: [registro y verificación](docs/architecture/azure-deployment.md).
 

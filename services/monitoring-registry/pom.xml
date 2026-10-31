@@ -32,4 +32,33 @@
       </executions>
     </plugin>
   </plugins></build>
+
+  <profiles>
+    <profile>
+      <id>acceptance</id>
+      <properties><cucumber.version>7.22.2</cucumber.version></properties>
+      <dependencies>
+        <dependency><groupId>io.cucumber</groupId><artifactId>cucumber-java</artifactId><version>${cucumber.version}</version><scope>test</scope></dependency>
+        <dependency><groupId>io.cucumber</groupId><artifactId>cucumber-spring</artifactId><version>${cucumber.version}</version><scope>test</scope></dependency>
+        <dependency><groupId>io.cucumber</groupId><artifactId>cucumber-junit-platform-engine</artifactId><version>${cucumber.version}</version><scope>test</scope></dependency>
+        <dependency><groupId>org.junit.platform</groupId><artifactId>junit-platform-suite</artifactId><scope>test</scope></dependency>
+      </dependencies>
+      <build><plugins>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId><artifactId>build-helper-maven-plugin</artifactId><version>3.6.1</version>
+          <executions>
+            <execution><id>acceptance-sources</id><phase>generate-test-sources</phase><goals><goal>add-test-source</goal></goals>
+              <configuration><sources><source>${project.basedir}/../../tests/acceptance/src/test/java</source></sources></configuration>
+            </execution>
+            <execution><id>acceptance-resources</id><phase>generate-test-resources</phase><goals><goal>add-test-resource</goal></goals>
+              <configuration><resources>
+                <resource><directory>${project.basedir}/../../tests/acceptance/src/test/resources</directory></resource>
+                <resource><directory>${project.basedir}/../../docs</directory><includes><include>hu04.feature</include></includes><targetPath>features/ep02</targetPath></resource>
+              </resources></configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins></build>
+    </profile>
+  </profiles>
 </project>
