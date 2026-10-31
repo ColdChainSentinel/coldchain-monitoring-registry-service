@@ -88,6 +88,12 @@ thermal_rules = {
 - **Arranque en frío:** con cero réplicas la primera solicitud tras un periodo inactivo
   tarda ~30-60 s (Spring Boot + Flyway). Para una demo, `min_replicas = 1` y volver a `0`
   después. Las llamadas entre servicios usan `HTTP_READ_TIMEOUT = 45s` por este motivo.
+- **Entorno Express:** Azure crea el entorno de Container Apps en modalidad Express. No
+  admite HTTP plano (las apps se llaman por HTTPS en `<app>.<dominio-del-entorno>`), no
+  tiene `az containerapp logs show` ni reinicio de revisiones (consultar los logs en Log
+  Analytics, tabla `ContainerAppConsoleLogs_CL`) y un cambio de configuración se aplica
+  cuando la réplica vuelve a arrancar, normalmente después de escalar a cero (~5 min sin
+  tráfico).
 - **Costos:** presupuesto mensual de USD 5 con avisos por correo; Log Analytics limitado a
   0.5 GB diarios. Eliminar todo con `terraform destroy`.
 
