@@ -18,9 +18,15 @@ locals {
     }
   })
 
-  # Apps in the same environment reach each other by name over plain HTTP.
-  # Telemetry is external because the simulator Function runs outside the
+  # Express environments reject plain-HTTP ingress and give internal apps the
+  # same <app>.<default_domain> FQDN (reachable only from inside the
+  # environment), so apps call each other over HTTPS. Telemetry is external because the simulator Function runs outside the
   # environment and its client only accepts an origin without path.
+  internal_url = {
+    for name in ["monitoring-registry", "alert-management"] :
+    name => "https://${name}.${azurerm_container_app_environment.main.default_domain}"
+  }
+
   java_apps = {
     "monitoring-registry" = {
       port     = 8080
@@ -39,8 +45,8 @@ locals {
       liveness_path = "/actuator/health/liveness"
       ready_path    = "/actuator/health/readiness"
       env = {
-        REGISTRY_BASE_URL = "http://monitoring-registry"
-        ALERTS_BASE_URL   = "http://alert-management"
+        REGISTRY_BASE_URL = local.internal_url["monitoring-registry"]
+        ALERTS_BASE_URL   = local.internal_url["alert-management"]
         HTTP_READ_TIMEOUT = var.http_read_timeout
       }
     }
@@ -51,7 +57,7 @@ locals {
       liveness_path = "/actuator/health/liveness"
       ready_path    = "/actuator/health/readiness"
       env = {
-        REGISTRY_BASE_URL       = "http://monitoring-registry"
+        REGISTRY_BASE_URL       = local.internal_url["monitoring-registry"]
         HTTP_READ_TIMEOUT       = var.http_read_timeout
         SPRING_APPLICATION_JSON = local.thermal_rules_json
       }
@@ -66,6 +72,7 @@ resource "azurerm_container_app" "java" {
   container_app_environment_id = azurerm_container_app_environment.main.id
   resource_group_name          = azurerm_resource_group.main.name
   revision_mode                = "Single"
+  workload_profile_name        = "Consumption"
   tags                         = local.tags
 
   secret {
@@ -91,12 +98,10 @@ resource "azurerm_container_app" "java" {
   }
 
   ingress {
-    external_enabled = each.value.external
-    # Internal callers use plain HTTP inside the environment; public traffic
-    # (Telemetry) stays HTTPS-only.
-    allow_insecure_connections = !each.value.external
+    external_enabled           = each.value.external
+    allow_insecure_connections = false
     target_port                = each.value.port
-    transport                  = "auto"
+    transport                  = "http"
 
     traffic_weight {
       latest_revision = true
@@ -176,6 +181,21 @@ resource "azurerm_container_app" "java" {
   }
 
   depends_on = [terraform_data.db_roles]
+
+  # Express environments manage scaling and traffic themselves and rewrite
+  # these fields; ignoring them keeps plans free of perpetual drift.
+  lifecycle {
+    ignore_changes = [
+      ingress[0].traffic_weight,
+      template[0].cooldown_period_in_seconds,
+      template[0].polling_interval_in_seconds,
+      template[0].http_scale_rule,
+      template[0].container[0].readiness_probe,
+      # Azure omits the default HTTP probe transport in its response.
+      template[0].container[0].liveness_probe[0].transport,
+      template[0].container[0].startup_probe[0].transport,
+    ]
+  }
 }
 
 resource "azurerm_container_app" "frontend" {
@@ -183,6 +203,7 @@ resource "azurerm_container_app" "frontend" {
   container_app_environment_id = azurerm_container_app_environment.main.id
   resource_group_name          = azurerm_resource_group.main.name
   revision_mode                = "Single"
+  workload_profile_name        = "Consumption"
   tags                         = local.tags
 
   dynamic "secret" {
@@ -206,7 +227,7 @@ resource "azurerm_container_app" "frontend" {
     external_enabled           = true
     allow_insecure_connections = false
     target_port                = 80
-    transport                  = "auto"
+    transport                  = "http"
 
     traffic_weight {
       latest_revision = true
@@ -226,7 +247,7 @@ resource "azurerm_container_app" "frontend" {
 
       env {
         name  = "REGISTRY_UPSTREAM"
-        value = "http://monitoring-registry"
+        value = local.internal_url["monitoring-registry"]
       }
       env {
         name  = "TELEMETRY_UPSTREAM"
@@ -234,7 +255,7 @@ resource "azurerm_container_app" "frontend" {
       }
       env {
         name  = "ALERTS_UPSTREAM"
-        value = "http://alert-management"
+        value = local.internal_url["alert-management"]
       }
 
       liveness_probe {
@@ -247,4 +268,18 @@ resource "azurerm_container_app" "frontend" {
 
   # nginx resolves its upstreams at startup, so the APIs must exist first.
   depends_on = [azurerm_container_app.java]
+
+  # Express environments manage scaling and traffic themselves and rewrite
+  # these fields; ignoring them keeps plans free of perpetual drift.
+  lifecycle {
+    ignore_changes = [
+      ingress[0].traffic_weight,
+      template[0].cooldown_period_in_seconds,
+      template[0].polling_interval_in_seconds,
+      template[0].http_scale_rule,
+      template[0].container[0].readiness_probe,
+      # Azure omits the default HTTP probe transport in its response.
+      template[0].container[0].liveness_probe[0].transport,
+    ]
+  }
 }

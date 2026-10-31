@@ -43,6 +43,13 @@ resource "azurerm_container_app_environment" "main" {
   logs_destination           = "log-analytics"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
   tags                       = local.tags
+
+  # Azure adds the serverless profile to every new environment; declaring it
+  # keeps plans free of drift.
+  workload_profile {
+    name                  = "Consumption"
+    workload_profile_type = "Consumption"
+  }
 }
 
 data "azurerm_subscription" "current" {}

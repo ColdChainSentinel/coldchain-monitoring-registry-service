@@ -1,7 +1,7 @@
 -- Idempotent bootstrap of one login role per service, run by Terraform as the
 -- server administrator. Passwords come from the environment, never from Git.
--- Each role owns its database (and therefore its public schema on PG 15+),
--- so Flyway can migrate it, while PUBLIC loses CONNECT on every service database.
+-- Each role owns its database and its public schema, so Flyway can migrate
+-- it, while PUBLIC loses CONNECT on every service database.
 
 \getenv registry_pw REGISTRY_DB_PASSWORD
 \getenv telemetry_pw TELEMETRY_DB_PASSWORD
@@ -24,3 +24,12 @@ ALTER DATABASE coldchain_telemetry OWNER TO telemetry_app;
 ALTER DATABASE coldchain_alerts OWNER TO alerts_app;
 
 REVOKE ALL ON DATABASE coldchain, coldchain_telemetry, coldchain_alerts FROM PUBLIC;
+
+-- Azure creates the public schema of each database owned by azure_pg_admin
+-- (not pg_database_owner), so ownership must be handed over explicitly.
+\connect coldchain
+ALTER SCHEMA public OWNER TO registry_app;
+\connect coldchain_telemetry
+ALTER SCHEMA public OWNER TO telemetry_app;
+\connect coldchain_alerts
+ALTER SCHEMA public OWNER TO alerts_app;
