@@ -183,17 +183,16 @@ resource "azurerm_container_app" "java" {
   depends_on = [terraform_data.db_roles]
 
   # Express environments manage scaling and traffic themselves and rewrite
-  # these fields; ignoring them keeps plans free of perpetual drift.
+  # these fields; ignoring them keeps plans free of perpetual drift. Probe
+  # transports are NOT ignored: Express omits the HTTP scheme in its response
+  # and ignoring it would resend an empty transport, silently turning HTTP
+  # probes into TCP. Plans therefore always show `transport = "HTTP"`.
   lifecycle {
     ignore_changes = [
       ingress[0].traffic_weight,
       template[0].cooldown_period_in_seconds,
       template[0].polling_interval_in_seconds,
       template[0].http_scale_rule,
-      template[0].container[0].readiness_probe,
-      # Azure omits the default HTTP probe transport in its response.
-      template[0].container[0].liveness_probe[0].transport,
-      template[0].container[0].startup_probe[0].transport,
     ]
   }
 }
@@ -270,16 +269,16 @@ resource "azurerm_container_app" "frontend" {
   depends_on = [azurerm_container_app.java]
 
   # Express environments manage scaling and traffic themselves and rewrite
-  # these fields; ignoring them keeps plans free of perpetual drift.
+  # these fields; ignoring them keeps plans free of perpetual drift. Probe
+  # transports are NOT ignored: Express omits the HTTP scheme in its response
+  # and ignoring it would resend an empty transport, silently turning HTTP
+  # probes into TCP. Plans therefore always show `transport = "HTTP"`.
   lifecycle {
     ignore_changes = [
       ingress[0].traffic_weight,
       template[0].cooldown_period_in_seconds,
       template[0].polling_interval_in_seconds,
       template[0].http_scale_rule,
-      template[0].container[0].readiness_probe,
-      # Azure omits the default HTTP probe transport in its response.
-      template[0].container[0].liveness_probe[0].transport,
     ]
   }
 }
