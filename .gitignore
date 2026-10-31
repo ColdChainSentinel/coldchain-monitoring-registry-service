@@ -12,3 +12,16 @@ dist/
 !.env.example
 agile.md
 capitulo-3.md
+config/alerts/thermal-rules.yml
+
+# Local ODD task tracking and agent skill registry (not versioned)
+/odd/
+/.atl/
+
+# Terraform local state, plans and variable files (may contain secrets)
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+!*.tfvars.example

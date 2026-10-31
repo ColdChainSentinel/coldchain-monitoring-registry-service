@@ -7,6 +7,8 @@ services:
   # ------------------------------------------------------------------
   # Base de Datos Relacional PostgreSQL 16
   # Aloja tres bases de datos lógicas: coldchain, coldchain_telemetry y coldchain_alerts
+  # El script de init solo corre con el volumen vacío: tras cambios en él,
+  # recrear con 'docker compose down -v'.
   # ------------------------------------------------------------------
   postgres:
     image: postgres:16-alpine
@@ -95,6 +97,10 @@ services:
   # ------------------------------------------------------------------
   # Microservicio 3: Alert Management (Evaluación de Reglas Térmicas)
   # Puerto interno: 8082 | Healthcheck: /actuator/health
+  # Reglas térmicas por UUID: ./config/alerts/thermal-rules.yml (ignorado
+  # por Git; plantilla en thermal-rules.example.yml). Sin ese archivo el
+  # servicio arranca, pero evaluar un punto devuelve 422
+  # THERMAL_RULE_NOT_CONFIGURED y Telemetry marca RULE_NOT_CONFIGURED.
   # ------------------------------------------------------------------
   alert-management:
     build:
@@ -108,6 +114,12 @@ services:
       DB_USER: ${DB_USER:-coldchain}
       DB_PASSWORD: ${DB_PASSWORD:-coldchain123}
       REGISTRY_BASE_URL: http://monitoring-registry:8080
+      # 'optional:' solo para el entorno local de Compose: permite arrancar
+      # antes de conocer el UUID real del punto. En entornos desplegados
+      # usar ruta obligatoria (sin 'optional:'), como indica el README de Alerts.
+      SPRING_CONFIG_ADDITIONAL_LOCATION: optional:file:/app/config/thermal-rules.yml
+    volumes:
+      - ./config/alerts:/app/config:ro
     ports:
       - "${ALERTS_PORT:-8082}:8082"
     depends_on:
@@ -144,11 +156,38 @@ services:
       alert-management:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:80/ || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 5s
+    networks:
+      - coldchain-network
+
+  # ------------------------------------------------------------------
+  # Simulador de Telemetría (OPCIONAL - perfil "simulator")
+  # En la nube es una Azure Function (Timer Trigger); aquí se ejecuta
+  # simulator.py en bucle para demos. NO se levanta con 'docker compose up'.
+  # Uso: docker compose --profile simulator up -d
+  # Requiere SIMULATOR_POINT_ID = UUID real registrado en Registry.
+  # ------------------------------------------------------------------
+  telemetry-simulator:
+    build:
+      context: ./functions/telemetry-simulator
+      dockerfile: Dockerfile
+    container_name: coldchain-telemetry-simulator
+    restart: unless-stopped
+    profiles: ["simulator"]
+    environment:
+      TELEMETRY_BASE_URL: http://telemetry-ingestion:8081
+      MONITORING_POINT_ID: ${SIMULATOR_POINT_ID:-}
+      SIMULATED_TEMPERATURE: ${SIMULATED_TEMPERATURE:-5}
+      SIMULATOR_DRY_RUN: ${SIMULATOR_DRY_RUN:-true}
+      SIMULATOR_INTERVAL_SECONDS: ${SIMULATOR_INTERVAL_SECONDS:-60}
+      HTTP_TIMEOUT_SECONDS: ${HTTP_TIMEOUT_SECONDS:-5}
+    depends_on:
+      telemetry-ingestion:
+        condition: service_healthy
     networks:
       - coldchain-network
 

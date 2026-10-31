@@ -1,0 +1,21 @@
+# ====================================================================
+# ColdChain Sentinel - Plantilla de reglas térmicas para Alert Management
+# Uso exclusivo con Docker Compose local (desarrollo / demo).
+#
+# 1. Levantar el stack y registrar un punto en Registry (frontend o API).
+# 2. Copiar este archivo como 'thermal-rules.yml' en esta misma carpeta
+#    (ese archivo está ignorado por Git).
+# 3. Reemplazar el UUID por el UUID REAL devuelto por Registry.
+# 4. Reiniciar solo Alerts:  docker compose restart alert-management
+#
+# Los valores son ILUSTRATIVOS. No son reglas universales ni productivas:
+# los límites de cada punto los define el responsable funcional.
+# Reglas parciales, min > max o valores no numéricos impiden el arranque.
+# ====================================================================
+coldchain:
+  alerts:
+    rules:
+      "00000000-0000-0000-0000-000000000000": # Sustituir por UUID REAL de Registry
+        threshold-min: 2.0
+        threshold-max: 8.0
+
