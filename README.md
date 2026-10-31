@@ -16,7 +16,7 @@ frontend/               # React + Vite + TypeScript, página de diagnóstico
 functions/
   telemetry-simulator/  # Azure Functions: emisor de mediciones con Timer Trigger
 infrastructure/
-  terraform/            # Reservado para el equipo
+  terraform/            # Despliegue Azure (Container Apps, PostgreSQL, Function)
   kubernetes/           # Reservado para el equipo
 tests/
   acceptance/           # Reservado
