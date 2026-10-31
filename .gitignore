@@ -25,3 +25,4 @@ config/alerts/thermal-rules.yml
 *.tfplan
 *.tfvars
 !*.tfvars.example
+.claude

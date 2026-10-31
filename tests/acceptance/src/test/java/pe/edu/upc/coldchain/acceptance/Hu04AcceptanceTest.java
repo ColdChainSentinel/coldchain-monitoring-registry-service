@@ -12,4 +12,6 @@ import org.junit.platform.suite.api.Suite;
 @ConfigurationParameter(key = "cucumber.plugin", value = "pretty,html:target/cucumber/hu04.html,json:target/cucumber/hu04.json,junit:target/cucumber/hu04.xml")
 @ConfigurationParameter(key = "cucumber.execution.parallel.enabled", value = "false")
 @ConfigurationParameter(key = "cucumber.publish.enabled", value = "false")
+@ConfigurationParameter(key = "cucumber.junit-platform.naming-strategy", value = "short")
+@ConfigurationParameter(key = "cucumber.junit-platform.naming-strategy.short.example-name", value = "pickle")
 public class Hu04AcceptanceTest { }

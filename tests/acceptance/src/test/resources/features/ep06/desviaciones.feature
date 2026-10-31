@@ -5,7 +5,7 @@ Característica: Evaluación de desviaciones y fallos de integración
   Los valores 2 y 8 son datos de prueba, no límites universales de conservación.
 
   @CA01 @CA02
-  Esquema del escenario: Evaluar límites inclusivos y desviaciones
+  Esquema del escenario: Evaluar una medición de <temperatura> grados frente al rango de 2 a 8
     Dado un punto de monitoreo con regla térmica de 2 a 8 grados Celsius
     Cuando registro una medición de <temperatura> grados Celsius
     Entonces Telemetry responde con estado 201

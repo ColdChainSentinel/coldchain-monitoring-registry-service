@@ -5,7 +5,16 @@
     <maven.compiler.release>17</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <integration.database>postgres</integration.database>
+    <integration.tags>@integracion</integration.tags>
   </properties>
+  <profiles>
+    <!-- H2 pierde datos al reiniciar un proceso: excluye explícitamente los escenarios que lo requieren. -->
+    <profile>
+      <id>h2</id>
+      <activation><property><name>integration.database</name><value>h2</value></property></activation>
+      <properties><integration.tags>@integracion and not @requiere_postgres</integration.tags></properties>
+    </profile>
+  </profiles>
   <dependencyManagement><dependencies>
     <dependency><groupId>org.junit</groupId><artifactId>junit-bom</artifactId><version>5.12.2</version><type>pom</type><scope>import</scope></dependency>
     <dependency><groupId>io.cucumber</groupId><artifactId>cucumber-bom</artifactId><version>7.22.2</version><type>pom</type><scope>import</scope></dependency>
@@ -36,6 +45,7 @@
           <systemPropertyVariables>
             <repository.root>${project.basedir}/../..</repository.root>
             <integration.database>${integration.database}</integration.database>
+            <cucumber.filter.tags>${integration.tags}</cucumber.filter.tags>
           </systemPropertyVariables>
         </configuration>
         <executions><execution><goals><goal>integration-test</goal><goal>verify</goal></goals></execution></executions>

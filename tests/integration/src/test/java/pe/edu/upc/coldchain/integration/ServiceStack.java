@@ -10,7 +10,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.DriverManager;
 import java.time.Duration;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -34,8 +36,11 @@ final class ServiceStack implements AutoCloseable {
     private int registryPort;
     private int telemetryPort;
     private int alertsPort;
+    private final Map<String, BigDecimal[]> rules = new LinkedHashMap<>();
+    private Map<String, BigDecimal[]> initialRules;
     String point;
     String noRulePoint;
+    String versionPoint;
 
     void start() throws Exception {
         if (!mode.equals("h2") && !mode.equals("postgres")) {
@@ -61,13 +66,14 @@ final class ServiceStack implements AutoCloseable {
                 }
             }
             registryPort = freePort();
-            registry = launch("monitoring-registry", "monitoring-management", "registry", registryPort,
-                    "pe.edu.upc.coldchain.MonitoringApplication");
-            awaitHealthy(registry, registryPort, "registry");
+            startRegistry();
             point = createPoint("IT-RULE");
             noRulePoint = createPoint("IT-NO-RULE");
-            Files.writeString(output.resolve("rules.yml"), "coldchain:\n  alerts:\n    rules:\n      \""
-                    + point + "\":\n        threshold-min: 2\n        threshold-max: 8\n");
+            versionPoint = createPoint("IT-VERSION");
+            rules.put(point, new BigDecimal[]{new BigDecimal("2"), new BigDecimal("8")});
+            rules.put(versionPoint, new BigDecimal[]{new BigDecimal("2"), new BigDecimal("8")});
+            initialRules = Map.copyOf(rules);
+            writeRules();
             alertsPort = freePort();
             startAlerts();
             telemetryPort = freePort();
@@ -124,7 +130,39 @@ final class ServiceStack implements AutoCloseable {
         return builder.start();
     }
 
-    private String createPoint(String code) throws Exception {
+    String mode() {
+        return mode;
+    }
+
+    private void writeRules() throws Exception {
+        StringBuilder yaml = new StringBuilder("coldchain:\n  alerts:\n    rules:\n");
+        rules.forEach((id, limits) -> yaml.append("      \"").append(id).append("\":\n        threshold-min: ")
+                .append(limits[0].toPlainString()).append("\n        threshold-max: ")
+                .append(limits[1].toPlainString()).append('\n'));
+        Files.writeString(output.resolve("rules.yml"), yaml);
+    }
+
+    /** Alerts reads its external rules at startup, so a change requires restarting that process. */
+    void changeRule(String id, BigDecimal min, BigDecimal max) throws Exception {
+        rules.put(id, new BigDecimal[]{min, max});
+        writeRules();
+        stopAlerts();
+        startAlerts();
+    }
+
+    void restoreRules() throws Exception {
+        boolean changed = rules.entrySet().stream().anyMatch(entry ->
+                !java.util.Arrays.equals(entry.getValue(), initialRules.get(entry.getKey())));
+        if (changed) {
+            rules.clear();
+            rules.putAll(initialRules);
+            writeRules();
+            stopAlerts();
+            startAlerts();
+        }
+    }
+
+    String createPoint(String code) throws Exception {
         Reply reply = request(registryPort, "POST", "/api/v1/monitoring-points",
                 Map.of("code", code, "name", "Punto integración", "type", "ALMACENAMIENTO"));
         if (reply.status() != 201) {
@@ -151,6 +189,20 @@ final class ServiceStack implements AutoCloseable {
         }
         var reply = http.send(builder.build(), HttpResponse.BodyHandlers.ofString());
         return new Reply(reply.statusCode(), JSON.readTree(reply.body()));
+    }
+
+    void stopRegistry() {
+        stop(registry);
+        registry = null;
+    }
+
+    void startRegistry() throws Exception {
+        if (registry != null && registry.isAlive()) {
+            return;
+        }
+        registry = launch("monitoring-registry", "monitoring-management", "registry", registryPort,
+                "pe.edu.upc.coldchain.MonitoringApplication");
+        awaitHealthy(registry, registryPort, "registry");
     }
 
     void stopAlerts() {
