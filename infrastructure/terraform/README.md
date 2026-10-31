@@ -106,6 +106,7 @@ thermal_rules = {
   caracteres y TLS. Una VNet con acceso privado eliminaría esa exposición.
 - JDBC usa `sslmode=require` (cifra, pero no valida el certificado del servidor).
 - El estado de Terraform es local y contiene contraseñas: nunca versionarlo
-  (`*.tfstate` está en `.gitignore`); un backend remoto es la mejora natural para el equipo.
+  (`*.tfstate` está en `.gitignore`). La migración a un backend remoto está pendiente y
+  documentada en [estado remoto de Terraform](../../docs/architecture/terraform-remote-state.md).
 - El simulador tiene un timeout máximo de 30 s, menor que un arranque en frío; su primera
   ejecución tras inactividad puede fallar sin reintento (comportamiento del contrato).

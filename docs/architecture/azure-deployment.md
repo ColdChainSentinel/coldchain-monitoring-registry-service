@@ -73,7 +73,7 @@ autenticación (ver [riesgos](#riesgos-abiertos)).
 - **Pérdida del estado local de Terraform:** el archivo `terraform.tfstate` desapareció
   durante una sesión. Se recuperó desde el estado incluido en un plan guardado y se
   conciliaron los recursos sin crear ni destruir nada en Azure. Es la razón principal para
-  migrar a un backend remoto.
+  migrar a un backend remoto ([tarea pendiente](terraform-remote-state.md)).
 
 ## Verificación en Azure
 
@@ -97,6 +97,7 @@ bloqueantes; de ellas se aplicaron la liveness por TCP de Registry y el límite 
 - PostgreSQL acepta conexiones desde servicios de Azure de cualquier tenant; la protección
   son contraseñas de 32 caracteres y TLS. Una VNet con acceso privado lo eliminaría.
 - JDBC usa `sslmode=require`: cifra, pero no valida el certificado del servidor.
-- Estado de Terraform local con contraseñas; conviene un backend remoto para el equipo.
+- Estado de Terraform local con contraseñas: migrarlo a un backend remoto es una tarea
+  pendiente, documentada paso a paso en [estado remoto de Terraform](terraform-remote-state.md).
 - El timeout de 30 s del simulador es menor que un arranque en frío: su primera ejecución
   tras un periodo inactivo puede fallar.
