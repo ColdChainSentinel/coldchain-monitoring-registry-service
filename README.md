@@ -204,6 +204,7 @@ de Telemetry: [README del servicio](services/telemetry-ingestion/README.md) y
 No se debe exponer el MVP públicamente sin controles de acceso acordados.
 
 Resultados de esta entrega: [verificación](docs/architecture/verification.md).
+Despliegue en Azure: [registro y verificación](docs/architecture/azure-deployment.md).
 
 ## Contribución serverless y Software Factory (3.5 y 3.8)
 

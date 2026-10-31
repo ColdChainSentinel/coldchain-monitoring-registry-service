@@ -14,8 +14,9 @@ agile.md
 capitulo-3.md
 config/alerts/thermal-rules.yml
 
-# Local ODD task tracking (not versioned)
+# Local ODD task tracking and agent skill registry (not versioned)
 /odd/
+/.atl/
 
 # Terraform local state, plans and variable files (may contain secrets)
 **/.terraform/
