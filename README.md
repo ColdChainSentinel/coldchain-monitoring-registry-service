@@ -19,15 +19,20 @@ infrastructure/
   terraform/            # Despliegue Azure (Container Apps, PostgreSQL, Function)
   kubernetes/           # Reservado para el equipo
 tests/
-  acceptance/           # Reservado
-  integration/          # Reservado
+  acceptance/           # Gherkin ejecutable + especificaciones pendientes de las 36 HU
+  integration/          # Aceptación HTTP entre servicios, PostgreSQL/H2
 docs/
   architecture/         # Guía de integración y verificación
   api-contracts/        # OpenAPI iniciales versionados
   evidence/             # Evidencias históricas originales
-.github/workflows/      # CI original de Registry, solo rutas adaptadas
+<<<<<<< HEAD
+.github/workflows/      # CI de Registry + aceptación HU-04
 docker-compose.yml      # Orquestación local ejecutable (ver sección Docker Compose)
 config/alerts/          # Plantilla de reglas térmicas para Compose local
+=======
+.github/workflows/      # CI de aceptación, integración, Trivy y Sonar
+docker-compose.yml      # Marcador, no ejecutable
+>>>>>>> 8981052 (test(acceptance): cover all user stories with executable and pending scenarios)
 pom.xml                 # Agregador opcional de los tres proyectos independientes
 ```
 
@@ -203,6 +208,27 @@ de Telemetry: [README del servicio](services/telemetry-ingestion/README.md) y
 [documentación](docs/architecture/telemetry-ingestion.md).
 No se debe exponer el MVP públicamente sin controles de acceso acordados.
 
+Resultados históricos de fase 1: [verificación](docs/architecture/verification.md).
+Implementación y verificación de Telemetry: [documentación](docs/architecture/telemetry-ingestion.md).
+Implementación y verificación de Alerts: [documentación](docs/architecture/alert-management.md).
+Flujo completo React → servicios → PostgreSQL, reinicios y resultados actuales:
+[integración funcional del MVP](docs/architecture/mvp-integration.md).
+
+## Aceptación automatizada (HU-04)
+
+Desde la raíz: `.\mvnw.cmd -B -ntp -pl services/monitoring-registry -Pacceptance clean verify`.
+Ejecuta los tests actuales de Registry y ocho escenarios Cucumber con tablas de datos.
+Reportes, especificaciones pendientes y matriz de las 36 HU: [tests/acceptance](tests/acceptance/README.md).
+El workflow independiente `ColdChain Acceptance` conserva el CI original y publica los
+reportes. Su ejecución remota se verificará después de subir la rama.
+
+Aceptación integrada de mediciones/alertas (28 escenarios, alcance parcial de HU-10,
+HU-12, HU-13, HU-14, HU-18 y HU-19): [ejecución PostgreSQL y H2](tests/integration/README.md). El modo PostgreSQL
+requiere Docker activo; H2 es una comprobación explícita distinta, no un reemplazo
+silencioso de PostgreSQL. El workflow incluye un job PostgreSQL pendiente de validación remota.
+
+<<<<<<< HEAD
+Verificación local de aceptación integrada: 12/12 escenarios aprobados con PostgreSQL/Testcontainers, además de la ejecución previa H2. [Evidencia](docs/evidence/acceptance/integrated-local.md). El resultado remoto en Actions sigue pendiente.
 Resultados de esta entrega: [verificación](docs/architecture/verification.md).
 Despliegue en Azure: [registro y verificación](docs/architecture/azure-deployment.md).
 
@@ -215,3 +241,20 @@ La integración real requiere que el equipo implemente Telemetry/Alerts.
 
 La [redacción de los apartados 3.5 y 3.8](docs/report/3.5-3.8-joaquin-carbajal.md)
 documenta arquitectura, pruebas, actualización del proceso y pendientes de despliegue.
+=======
+Verificación local de aceptación integrada: 28/28 escenarios aprobados con PostgreSQL/Testcontainers; con H2, 26 aprobados y 2 excluidos por `@requiere_postgres`. [Evidencia](docs/evidence/acceptance/integrated-local.md). El resultado remoto en Actions sigue pendiente.
+
+## Seguridad y calidad en CI
+
+El workflow `ColdChain Acceptance` añade dos jobs independientes:
+
+- **Trivy** (`trivy`): escanea el repositorio (dependencias Maven y npm, secretos y
+  Dockerfiles). Publica todos los hallazgos en *Code scanning* (SARIF) y falla si hay
+  vulnerabilidades HIGH o CRITICAL con versión corregida disponible. Acciones fijadas por SHA.
+- **Sonar** (`sonar`): compila y prueba con JaCoCo en los tres servicios y envía el análisis,
+  esperando el *quality gate* (`sonar.qualitygate.wait=true`). Requiere el secreto
+  `SONAR_TOKEN` y, opcionalmente, las variables `SONAR_HOST_URL` (por defecto
+  `https://sonarcloud.io`), `SONAR_ORGANIZATION` (obligatoria en SonarQube Cloud) y
+  `SONAR_PROJECT_KEY`. Sin token, el job emite una advertencia visible y no analiza.
+  El frontend no forma parte del análisis Maven.
+>>>>>>> 8981052 (test(acceptance): cover all user stories with executable and pending scenarios)

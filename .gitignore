@@ -26,3 +26,4 @@ config/alerts/thermal-rules.yml
 *.tfvars
 backend.hcl
 !*.tfvars.example
+.claude
