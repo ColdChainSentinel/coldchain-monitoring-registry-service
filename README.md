@@ -25,14 +25,9 @@ docs/
   architecture/         # Guía de integración y verificación
   api-contracts/        # OpenAPI iniciales versionados
   evidence/             # Evidencias históricas originales
-<<<<<<< HEAD
-.github/workflows/      # CI de Registry + aceptación HU-04
+.github/workflows/      # CI: Registry, aceptación/integración, DevSecOps (Trivy, Sonar), serverless
 docker-compose.yml      # Orquestación local ejecutable (ver sección Docker Compose)
 config/alerts/          # Plantilla de reglas térmicas para Compose local
-=======
-.github/workflows/      # CI de aceptación, integración, Trivy y Sonar
-docker-compose.yml      # Marcador, no ejecutable
->>>>>>> 8981052 (test(acceptance): cover all user stories with executable and pending scenarios)
 pom.xml                 # Agregador opcional de los tres proyectos independientes
 ```
 
@@ -227,8 +222,7 @@ HU-12, HU-13, HU-14, HU-18 y HU-19): [ejecución PostgreSQL y H2](tests/integrat
 requiere Docker activo; H2 es una comprobación explícita distinta, no un reemplazo
 silencioso de PostgreSQL. El workflow incluye un job PostgreSQL pendiente de validación remota.
 
-<<<<<<< HEAD
-Verificación local de aceptación integrada: 12/12 escenarios aprobados con PostgreSQL/Testcontainers, además de la ejecución previa H2. [Evidencia](docs/evidence/acceptance/integrated-local.md). El resultado remoto en Actions sigue pendiente.
+Verificación local de aceptación integrada: 28/28 escenarios aprobados con PostgreSQL/Testcontainers; con H2, 26 aprobados y 2 excluidos por `@requiere_postgres`. [Evidencia](docs/evidence/acceptance/integrated-local.md). El resultado remoto en Actions sigue pendiente.
 Resultados de esta entrega: [verificación](docs/architecture/verification.md).
 Despliegue en Azure: [registro y verificación](docs/architecture/azure-deployment.md).
 
@@ -241,20 +235,39 @@ La integración real requiere que el equipo implemente Telemetry/Alerts.
 
 La [redacción de los apartados 3.5 y 3.8](docs/report/3.5-3.8-joaquin-carbajal.md)
 documenta arquitectura, pruebas, actualización del proceso y pendientes de despliegue.
-=======
-Verificación local de aceptación integrada: 28/28 escenarios aprobados con PostgreSQL/Testcontainers; con H2, 26 aprobados y 2 excluidos por `@requiere_postgres`. [Evidencia](docs/evidence/acceptance/integrated-local.md). El resultado remoto en Actions sigue pendiente.
 
-## Seguridad y calidad en CI
+## Seguridad y calidad en CI (DevSecOps)
 
-El workflow `ColdChain Acceptance` añade dos jobs independientes:
+El workflow `ColdChain DevSecOps` (`.github/workflows/devsecops.yml`) se ejecuta en cada
+push y PR hacia `main` o `develop`, sin filtros de rutas, para que también se escaneen
+cambios en `frontend/`, `infrastructure/` y en las excepciones.
 
-- **Trivy** (`trivy`): escanea el repositorio (dependencias Maven y npm, secretos y
-  Dockerfiles). Publica todos los hallazgos en *Code scanning* (SARIF) y falla si hay
-  vulnerabilidades HIGH o CRITICAL con versión corregida disponible. Acciones fijadas por SHA.
-- **Sonar** (`sonar`): compila y prueba con JaCoCo en los tres servicios y envía el análisis,
-  esperando el *quality gate* (`sonar.qualitygate.wait=true`). Requiere el secreto
-  `SONAR_TOKEN` y, opcionalmente, las variables `SONAR_HOST_URL` (por defecto
-  `https://sonarcloud.io`), `SONAR_ORGANIZATION` (obligatoria en SonarQube Cloud) y
-  `SONAR_PROJECT_KEY`. Sin token, el job emite una advertencia visible y no analiza.
-  El frontend no forma parte del análisis Maven.
->>>>>>> 8981052 (test(acceptance): cover all user stories with executable and pending scenarios)
+- **Trivy** (`trivy`): escanea dependencias Maven, npm y Python, secretos, Dockerfiles y
+  Terraform. Publica todos los hallazgos en *Code scanning* (SARIF) y falla si hay HIGH o
+  CRITICAL con corrección disponible. Las excepciones aceptadas viven en
+  `.trivyignore.yaml`, cada una con motivo y fecha de vencimiento; el SARIF las sigue
+  mostrando. Acciones de terceros fijadas por SHA.
+- **Sonar** (`sonar`): compila y prueba con JaCoCo en los tres servicios y espera el
+  *quality gate* (`sonar.qualitygate.wait=true`). Requiere el secreto `SONAR_TOKEN` y la
+  variable `SONAR_ORGANIZATION` (SonarQube Cloud); opcionales `SONAR_HOST_URL` (por
+  defecto `https://sonarcloud.io`) y `SONAR_PROJECT_KEY`. Sin token, el job emite una
+  advertencia visible y no analiza. El frontend no forma parte del análisis Maven.
+
+Remediaciones aplicadas por el gate de Trivy:
+
+| Hallazgo | Severidad | Resolución |
+|---|---|---|
+| CVE-2026-54291 en `org.postgresql:postgresql` 42.7.11 | HIGH | `postgresql.version` 42.7.14 en los tres servicios |
+| DS-0002: el frontend corría como root | HIGH | `nginx-unprivileged`, `USER nginx`, puerto 8080 (Compose y Terraform actualizados) |
+| AZU-0012: Storage Account de la Function acepta todas las redes | CRITICAL | Excepción documentada hasta 2027-03-31: denegar exige VNet y private endpoints fuera del presupuesto Azure for Students |
+
+### Activar Sonar (una sola vez)
+
+1. En <https://sonarcloud.io>, iniciar sesión con GitHub e importar la organización
+   `ColdChainSentinel` y el repositorio. Clave por defecto del proyecto:
+   `ColdChainSentinel_coldchain-monitoring-registry-service`.
+2. En el proyecto: *Administration → Analysis Method* → desactivar *Automatic Analysis*
+   (el análisis lo hace el CI; ambos a la vez fallan).
+3. *My Account → Security* → generar un token.
+4. En GitHub: *Settings → Secrets and variables → Actions* → secreto `SONAR_TOKEN` y
+   variable `SONAR_ORGANIZATION` con la clave de la organización en SonarQube Cloud.
