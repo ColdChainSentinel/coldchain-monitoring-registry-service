@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+tests/
+local.settings*.json
+README.md
+Dockerfile
+.dockerignore

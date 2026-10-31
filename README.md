@@ -10,11 +10,13 @@ integrado está verificado; **infraestructura y despliegues siguen fuera de esta
 ```text
 services/
   monitoring-registry/   # Servicio existente, código y tests conservados
-  telemetry-ingestion/   # Ingesta/consulta, persistencia y clientes HTTP
-  alert-management/     # Evaluación idempotente y consulta de alertas
-frontend/               # Dashboard y formularios React + Vite + TypeScript
+  telemetry-ingestion/   # Esqueleto Spring Boot, sin negocio
+  alert-management/     # Esqueleto Spring Boot, sin negocio
+frontend/               # React + Vite + TypeScript, página de diagnóstico
+functions/
+  telemetry-simulator/  # Azure Functions: emisor de mediciones con Timer Trigger
 infrastructure/
-  terraform/            # Reservado para el equipo
+  terraform/            # Despliegue Azure (Container Apps, PostgreSQL, Function)
   kubernetes/           # Reservado para el equipo
 tests/
   acceptance/           # Reservado
@@ -24,7 +26,8 @@ docs/
   api-contracts/        # OpenAPI iniciales versionados
   evidence/             # Evidencias históricas originales
 .github/workflows/      # CI original de Registry, solo rutas adaptadas
-docker-compose.yml      # Marcador, no ejecutable
+docker-compose.yml      # Orquestación local ejecutable (ver sección Docker Compose)
+config/alerts/          # Plantilla de reglas térmicas para Compose local
 pom.xml                 # Agregador opcional de los tres proyectos independientes
 ```
 
@@ -149,6 +152,26 @@ El proxy Vite los dirige a 8080/8081/8082 evitando cambios en CORS de Registry.
 En producción se debe configurar proxy equivalente o URLs y CORS explícitos;
 las variables `VITE_*` son públicas y de compilación, nunca secretos.
 
+## Docker Compose (entorno local integrado)
+
+Requiere Docker con Compose v2. Desde la raíz:
+
+```sh
+cp .env.example .env            # opcional: personalizar puertos/credenciales locales
+docker compose up -d --build    # postgres + 3 servicios + frontend en http://localhost
+```
+
+1. Registrar un punto en el frontend y copiar su UUID.
+2. `cp config/alerts/thermal-rules.example.yml config/alerts/thermal-rules.yml`,
+   reemplazar el UUID y ajustar límites aprobados (archivo ignorado por Git).
+3. `docker compose restart alert-management` para cargar la regla.
+4. Opcional, simulador: definir `SIMULATOR_POINT_ID` y `SIMULATOR_DRY_RUN=false` en `.env`
+   y ejecutar `docker compose --profile simulator up -d`.
+
+El script de bases solo corre con el volumen vacío. Si ya existía un volumen anterior,
+recrearlo con `docker compose down -v` (borra los datos locales). Las credenciales por
+defecto de Compose son solo de desarrollo local.
+
 ## Contratos y salud
 
 - [Telemetry OpenAPI 0.1.1](docs/api-contracts/telemetry-ingestion-v1.yaml):
@@ -171,8 +194,8 @@ errores, idempotencia y evaluación pendiente en la guía, antes de desarrollar.
 
 La [guía de integración](docs/architecture/integration-guide.md) define configuración,
 límites de responsabilidad, manejo de fallos, probes y entregables para Docker,
-CI/CD, Azure/IaC y testing. No se crean pipelines, imágenes ni recursos nuevos;
-el workflow previo únicamente cambia su directorio y rutas de artefactos.
+CI/CD, Azure/IaC y testing. Registry conserva su workflow y la contribución
+serverless añade un CI independiente. No se crean imágenes ni recursos cloud nuevos.
 
 Pendientes: reglas asignadas por el responsable funcional,
 aceptación formal del entorno desplegado, seguridad y despliegues. Instrucciones y decisiones
@@ -180,8 +203,15 @@ de Telemetry: [README del servicio](services/telemetry-ingestion/README.md) y
 [documentación](docs/architecture/telemetry-ingestion.md).
 No se debe exponer el MVP públicamente sin controles de acceso acordados.
 
-Resultados históricos de fase 1: [verificación](docs/architecture/verification.md).
-Implementación y verificación de Telemetry: [documentación](docs/architecture/telemetry-ingestion.md).
-Implementación y verificación de Alerts: [documentación](docs/architecture/alert-management.md).
-Flujo completo React → servicios → PostgreSQL, reinicios y resultados actuales:
-[integración funcional del MVP](docs/architecture/mvp-integration.md).
+Resultados de esta entrega: [verificación](docs/architecture/verification.md).
+Despliegue en Azure: [registro y verificación](docs/architecture/azure-deployment.md).
+
+## Contribución serverless y Software Factory (3.5 y 3.8)
+
+La [función emisora](functions/telemetry-simulator/README.md) permite construir mediciones
+en dry-run o enviarlas al contrato de Telemetry mediante un temporizador. Incluye diez
+pruebas y un workflow propio de CI. No contiene reglas térmicas ni notificaciones.
+La integración real requiere que el equipo implemente Telemetry/Alerts.
+
+La [redacción de los apartados 3.5 y 3.8](docs/report/3.5-3.8-joaquin-carbajal.md)
+documenta arquitectura, pruebas, actualización del proceso y pendientes de despliegue.
