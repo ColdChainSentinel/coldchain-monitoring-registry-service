@@ -15,6 +15,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import pe.edu.upc.coldchain.model.MonitoringPoint;
 import pe.edu.upc.coldchain.model.PointType;
+import pe.edu.upc.coldchain.repository.DeviceRepository;
 import pe.edu.upc.coldchain.repository.PointRepository;
 import pe.edu.upc.coldchain.security.AuthContext;
 import pe.edu.upc.coldchain.security.IdentityClient;
@@ -33,6 +34,9 @@ class PointAuthSecurityTest {
     private MockMvc mvc;
 
     @Autowired
+    private DeviceRepository deviceRepository;
+
+    @Autowired
     private PointRepository repository;
 
     @MockitoBean
@@ -43,6 +47,7 @@ class PointAuthSecurityTest {
 
     @BeforeEach
     void setup() {
+        deviceRepository.deleteAll();
         repository.deleteAll();
         pointA = repository.save(new MonitoringPoint("ALM-01", "Almacen 1", PointType.ALMACENAMIENTO)).getId();
         pointB = repository.save(new MonitoringPoint("ALM-02", "Almacen 2", PointType.ALMACENAMIENTO)).getId();

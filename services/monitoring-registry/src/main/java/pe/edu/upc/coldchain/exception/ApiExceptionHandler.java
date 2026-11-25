@@ -22,6 +22,16 @@ public class ApiExceptionHandler {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
     }
 
+    @ExceptionHandler(DeviceNotFoundException.class)
+    public ProblemDetail missingDevice(DeviceNotFoundException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+    }
+
+    @ExceptionHandler(InactivePointException.class)
+    public ProblemDetail inactivePoint(InactivePointException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_ENTITY, exception.getMessage());
+    }
+
     @ExceptionHandler(ForbiddenAccessException.class)
     public ProblemDetail forbidden(ForbiddenAccessException exception) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, exception.getMessage());

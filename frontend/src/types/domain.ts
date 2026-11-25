@@ -66,3 +66,31 @@ export interface UpdatePermissions {
   role: Role;
   allowedPointIds: string[];
 }
+
+export interface Device {
+  id: string;
+  code: string;
+  active: boolean;
+  status: string;
+  monitoringPointId: string;
+  monitoringPointCode: string;
+  createdAt: string;
+}
+
+export interface CreateDevice {
+  code: string;
+  monitoringPointId: string;
+}
+
+export interface ThermalRule {
+  monitoringPointId: string;
+  thresholdMin: Decimal;
+  thresholdMax: Decimal;
+  unit: string;
+  updatedAt?: string | null;
+}
+
+export interface ConfigureThermalRule {
+  thresholdMin: number;
+  thresholdMax: number;
+}

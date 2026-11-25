@@ -8,6 +8,8 @@ import { MeasurementForm } from '../features/telemetry/MeasurementForm';
 import { MeasurementTable } from '../features/telemetry/MeasurementTable';
 import { EvaluationBadge, MeasurementReceipt } from '../features/telemetry/MeasurementStatus';
 import { AlertTable } from '../features/alerts/AlertTable';
+import { ThermalRulePanel } from '../features/alerts/ThermalRulePanel';
+import { DevicePanel } from '../features/monitoring/DevicePanel';
 import { useResource, type Resource } from '../hooks/useResource';
 import { formatDate, formatTemperature, pointTypeLabel } from '../lib/format';
 import { monitoringApi } from '../services/monitoring';
@@ -394,24 +396,27 @@ export function HomePage({
         )}
 
         {section === 'monitoring' && (
-          <div className="feature-grid">
-            <section className="card data-card">
-              <div className="card-heading">
-                <div>
-                  <span className="eyebrow">CATÁLOGO</span>
-                  <h2>Puntos registrados</h2>
+          <>
+            <div className="feature-grid">
+              <section className="card data-card">
+                <div className="card-heading">
+                  <div>
+                    <span className="eyebrow">CATÁLOGO</span>
+                    <h2>Puntos registrados</h2>
+                  </div>
+                  <Icon name="point" />
                 </div>
-                <Icon name="point" />
-              </div>
-              <p className="section-description">
-                Selecciona un punto para consultar su historial. No hay edición ni eliminación en este MVP.
-              </p>
-              {points.data !== null && (
-                <PointList points={points.data} selectedId={pointId} onSelect={setSelectedId} />
-              )}
-            </section>
-            <PointForm onCreate={createPoint} />
-          </div>
+                <p className="section-description">
+                  Selecciona un punto para consultar su historial. No hay edición ni eliminación en este MVP.
+                </p>
+                {points.data !== null && (
+                  <PointList points={points.data} selectedId={pointId} onSelect={setSelectedId} />
+                )}
+              </section>
+              <PointForm onCreate={createPoint} />
+            </div>
+            {selectedPoint && <DevicePanel point={selectedPoint} />}
+          </>
         )}
 
         {section === 'telemetry' &&
@@ -460,9 +465,9 @@ export function HomePage({
         {section === 'alerts' &&
           (selectedPoint ? (
             <>
+              <ThermalRulePanel point={selectedPoint} />
               <Notice>
-                Los límites mostrados son los snapshots guardados con cada alerta. Las reglas se configuran
-                externamente por UUID; no se modifican desde esta interfaz.
+                Los límites mostrados en la tabla son los snapshots guardados con cada alerta.
               </Notice>
               <QueryCard
                 title="Historial de alertas"

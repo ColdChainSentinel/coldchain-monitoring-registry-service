@@ -8,6 +8,8 @@ function connectedApis() {
   return vi.fn(async (url: string) => {
     if (url.endsWith('/actuator/health')) return json({ status: 'UP' });
     if (url.includes('/monitoring-points')) return json([point, otherPoint]);
+    if (url.includes('/api/v1/devices')) return json([]);
+    if (url.includes('/api/alerts/rules')) return json({}, 404);
     if (url.includes('/measurements')) return json(url.includes(point.id) ? [measurement] : []);
     if (url.includes('/api/alerts')) return json(url.includes(point.id) ? [alert] : []);
     throw new Error('Unexpected route: ' + url);
