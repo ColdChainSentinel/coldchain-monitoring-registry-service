@@ -10,6 +10,7 @@ const paths = {
   clock: 'M12 8v5l3 2M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z',
   info: 'M12 11v6M12 7v.1M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z',
   plus: 'M12 5v14M5 12h14',
+  user: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z',
 };
 export type IconName = keyof typeof paths;
 export function Icon({ name, className = '' }: { name: IconName; className?: string }) {

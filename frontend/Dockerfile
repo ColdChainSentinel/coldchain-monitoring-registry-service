@@ -18,6 +18,7 @@ COPY . .
 ENV VITE_REGISTRY_BASE_URL=/registry
 ENV VITE_TELEMETRY_BASE_URL=/telemetry
 ENV VITE_ALERTS_BASE_URL=/alerts
+ENV VITE_IDENTITY_BASE_URL=/identity
 
 # Generar el paquete de producción en /app/dist
 RUN npm run build
@@ -34,7 +35,8 @@ COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 # Upstreams por defecto (DNS de Compose); sobrescribir en Azure Container Apps
 ENV REGISTRY_UPSTREAM=http://monitoring-registry:8080 \
     TELEMETRY_UPSTREAM=http://telemetry-ingestion:8081 \
-    ALERTS_UPSTREAM=http://alert-management:8082
+    ALERTS_UPSTREAM=http://alert-management:8082 \
+    IDENTITY_UPSTREAM=http://identity-access:8083
 
 # Copiar los archivos estáticos generados por el builder
 COPY --from=builder /app/dist /usr/share/nginx/html

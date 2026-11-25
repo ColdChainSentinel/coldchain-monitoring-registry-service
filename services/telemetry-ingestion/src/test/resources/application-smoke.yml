@@ -5,3 +5,6 @@ spring:
     password: ${TEST_DB_PASSWORD:}
   flyway:
     fail-on-missing-locations: false
+coldchain:
+  auth:
+    enabled: false

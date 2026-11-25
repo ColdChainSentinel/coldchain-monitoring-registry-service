@@ -31,3 +31,38 @@ export interface ThermalAlert {
   createdAt: string;
   type?: AlertType;
 }
+
+export type Role = 'ADMIN' | 'SUPERVISOR' | 'OPERADOR' | 'CONDUCTOR';
+
+export interface AuthSession {
+  userId: string;
+  username: string;
+  fullName: string;
+  role: Role;
+  allowedPointIds: string[];
+  token?: string;
+  message?: string;
+}
+
+export interface UserAccount {
+  id: string;
+  username: string;
+  fullName: string;
+  role: Role;
+  active: boolean;
+  allowedPointIds: string[];
+  createdAt: string;
+}
+
+export interface CreateUser {
+  username: string;
+  password: string;
+  fullName: string;
+  role: Role;
+  allowedPointIds: string[];
+}
+
+export interface UpdatePermissions {
+  role: Role;
+  allowedPointIds: string[];
+}

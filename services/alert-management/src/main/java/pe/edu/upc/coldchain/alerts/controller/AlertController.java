@@ -2,6 +2,7 @@ package pe.edu.upc.coldchain.alerts.controller;
 
 import java.util.List;
 import java.util.UUID;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,6 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 import pe.edu.upc.coldchain.alerts.dto.AlertResponse;
 import pe.edu.upc.coldchain.alerts.dto.EvaluateMeasurementRequest;
 import pe.edu.upc.coldchain.alerts.dto.EvaluationResponse;
+import pe.edu.upc.coldchain.alerts.exception.ForbiddenAccessException;
+import pe.edu.upc.coldchain.alerts.security.AuthContext;
+import pe.edu.upc.coldchain.alerts.security.SessionAuthFilter;
 import pe.edu.upc.coldchain.alerts.service.EvaluationService;
 
 @RestController
@@ -44,7 +48,9 @@ public class AlertController {
                 mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
         @ApiResponse(responseCode = "503", description = "Registry o almacenamiento no disponibles", content = @Content(
                 mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))})
-    public EvaluationResponse evaluate(@Valid @RequestBody EvaluateMeasurementRequest request) {
+    public EvaluationResponse evaluate(@Valid @RequestBody EvaluateMeasurementRequest request,
+            HttpServletRequest httpRequest) {
+        requirePointAccess(httpRequest, request.monitoringPointId());
         return service.evaluate(request);
     }
 
@@ -58,7 +64,17 @@ public class AlertController {
     public List<AlertResponse> list(@RequestParam
             @Parameter(schema = @Schema(type = "string", format = "uuid"))
             @Pattern(regexp = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
-            String monitoringPointId) {
-        return service.list(UUID.fromString(monitoringPointId));
+            String monitoringPointId,
+            HttpServletRequest httpRequest) {
+        UUID pointId = UUID.fromString(monitoringPointId);
+        requirePointAccess(httpRequest, pointId);
+        return service.list(pointId);
+    }
+
+    private void requirePointAccess(HttpServletRequest request, UUID pointId) {
+        Object attr = request.getAttribute(SessionAuthFilter.AUTH_CONTEXT_ATTR);
+        if (attr instanceof AuthContext auth && !auth.canAccessPoint(pointId)) {
+            throw new ForbiddenAccessException();
+        }
     }
 }
