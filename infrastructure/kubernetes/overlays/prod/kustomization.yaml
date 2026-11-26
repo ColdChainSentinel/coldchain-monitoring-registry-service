@@ -16,19 +16,19 @@ components:
 images:
   - name: coldchain/identity-access
     newName: ghcr.io/coldchainsentinel/identity-access
-    newTag: dead00000001
+    newTag: b9fd9c470b6b
   - name: coldchain/monitoring-registry
     newName: ghcr.io/coldchainsentinel/monitoring-registry
-    newTag: dead00000001
+    newTag: b9fd9c470b6b
   - name: coldchain/telemetry-ingestion
     newName: ghcr.io/coldchainsentinel/telemetry-ingestion
-    newTag: dead00000001
+    newTag: b9fd9c470b6b
   - name: coldchain/alert-management
     newName: ghcr.io/coldchainsentinel/alert-management
-    newTag: dead00000001
+    newTag: b9fd9c470b6b
   - name: coldchain/frontend
     newName: ghcr.io/coldchainsentinel/frontend
-    newTag: dead00000001
+    newTag: b9fd9c470b6b
 replicas:
   - name: frontend
     count: 2
