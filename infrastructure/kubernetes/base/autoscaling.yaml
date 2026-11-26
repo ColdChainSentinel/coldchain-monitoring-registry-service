@@ -1,3 +1,8 @@
+# Autoescalado horizontal por CPU (objetivo 70 % de la solicitud).
+# Identity Access y Monitoring Registry se agregaron tras la prueba de carga de
+# 4.4.3: cada medición dispara tres introspecciones de sesión en Identity y una
+# validación en Registry, y ambos saturaban su CPU con una sola réplica.
+# behavior: sube rápido ante picos y baja con 2 minutos de estabilización.
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -16,6 +21,9 @@ spec:
         target:
           type: Utilization
           averageUtilization: 70
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 120
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -35,3 +43,50 @@ spec:
         target:
           type: Utilization
           averageUtilization: 70
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 120
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: identity-access
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: identity-access
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 120
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: monitoring-registry
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: monitoring-registry
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 120

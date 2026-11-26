@@ -26,7 +26,11 @@ const profiles = {
   ],
 };
 
+// TARGET_IP permite apuntar a un Ingress por nombre de host sin DNS (p. ej. *.localhost).
+const hostName = BASE_URL.replace(/^https?:\/\//, '').split(/[:/]/)[0];
+
 export const options = {
+  hosts: __ENV.TARGET_IP ? { [hostName]: __ENV.TARGET_IP } : {},
   scenarios: {
     ingestion: { executor: 'ramping-vus', startVUs: 0, stages: profiles[PROFILE], gracefulRampDown: '20s' },
   },
