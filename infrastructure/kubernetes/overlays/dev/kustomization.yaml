@@ -16,16 +16,16 @@ components:
 images:
   - name: coldchain/identity-access
     newName: ghcr.io/coldchainsentinel/identity-access
-    newTag: 6b16eadc62b0
+    newTag: b9fd9c470b6b
   - name: coldchain/monitoring-registry
     newName: ghcr.io/coldchainsentinel/monitoring-registry
-    newTag: 6b16eadc62b0
+    newTag: b9fd9c470b6b
   - name: coldchain/telemetry-ingestion
     newName: ghcr.io/coldchainsentinel/telemetry-ingestion
-    newTag: 6b16eadc62b0
+    newTag: b9fd9c470b6b
   - name: coldchain/alert-management
     newName: ghcr.io/coldchainsentinel/alert-management
-    newTag: 6b16eadc62b0
+    newTag: b9fd9c470b6b
   - name: coldchain/frontend
     newName: ghcr.io/coldchainsentinel/frontend
-    newTag: 6b16eadc62b0
+    newTag: b9fd9c470b6b
