@@ -11,3 +11,13 @@ resources:
   - autoscaling.yaml
   - network-policies.yaml
   - pod-disruption-budgets.yaml
+# Generado con hash en el nombre: cualquier cambio de configuración provoca un
+# rolling update de los pods que lo usan (sin reinicios manuales).
+configMapGenerator:
+  - name: coldchain-observability
+    literals:
+      # Trazas OTLP hacia Jaeger y logs JSON (ECS) para Loki.
+      - OTLP_TRACING_ENABLED=true
+      - OTLP_TRACING_ENDPOINT=http://jaeger.monitoring:4318/v1/traces
+      - TRACING_SAMPLING_PROBABILITY=1.0
+      - LOGGING_STRUCTURED_FORMAT_CONSOLE=ecs

@@ -46,11 +46,11 @@ data:
           - role: pod
         pipeline_stages:
           - cri: {}
-          # Logs ECS (JSON) de Spring Boot: nivel y trace.id como etiquetas/metadatos.
+          # Logs ECS (JSON anidado) de Spring Boot: nivel como etiqueta y trace.id como metadato.
           - json:
               expressions:
-                level: '"log.level"'
-                trace_id: '"trace.id"'
+                level: log.level
+                trace_id: trace.id
           - labels:
               level:
           - structured_metadata:

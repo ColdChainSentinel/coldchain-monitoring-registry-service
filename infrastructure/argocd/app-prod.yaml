@@ -16,6 +16,13 @@ spec:
     server: https://kubernetes.default.svc
     namespace: coldchain-prod
   revisionHistoryLimit: 10
+  # Kubernetes completa campos por defecto en volumeClaimTemplates (status,
+  # volumeMode); sin esto el StatefulSet aparece siempre OutOfSync.
+  ignoreDifferences:
+    - group: apps
+      kind: StatefulSet
+      jsonPointers:
+        - /spec/volumeClaimTemplates
   syncPolicy:
     automated:
       prune: true
@@ -23,6 +30,7 @@ spec:
     syncOptions:
       - CreateNamespace=false
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
     retry:
       limit: 3
       backoff:

@@ -42,3 +42,10 @@ images:
   - name: coldchain/frontend
     newName: ghcr.io/coldchainsentinel/frontend
     newTag: IMAGE_TAG
+configMapGenerator:
+  # Producción: sin Swagger UI ni OpenAPI publicados (superficie mínima, OWASP A05).
+  - name: coldchain-observability
+    behavior: merge
+    literals:
+      - SPRINGDOC_API_DOCS_ENABLED=false
+      - SPRINGDOC_SWAGGER_UI_ENABLED=false
