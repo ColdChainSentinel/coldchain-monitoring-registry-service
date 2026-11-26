@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identity-access
+spec:
+  template:
+    spec:
+      containers:
+        - name: identity-access
+          env:
+            - name: DB_URL
+              value: "jdbc:postgresql://postgres:5432/coldchain_identity"
+            - name: BOOTSTRAP_ADMIN_USERNAME
+              value: admin
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monitoring-registry
+spec:
+  template:
+    spec:
+      containers:
+        - name: monitoring-registry
+          env:
+            - name: DB_URL
+              value: "jdbc:postgresql://postgres:5432/coldchain"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telemetry-ingestion
+spec:
+  template:
+    spec:
+      containers:
+        - name: telemetry-ingestion
+          env:
+            - name: DB_URL
+              value: "jdbc:postgresql://postgres:5432/coldchain_telemetry"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alert-management
+spec:
+  template:
+    spec:
+      containers:
+        - name: alert-management
+          env:
+            - name: DB_URL
+              value: "jdbc:postgresql://postgres:5432/coldchain_alerts"

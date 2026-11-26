@@ -1,0 +1,24 @@
+# SLIs como reglas de grabación. Ventana de 5 minutos para paneles y alertas
+# rápidas; 30 días para el presupuesto de error del SLO.
+groups:
+  - name: coldchain-sli
+    rules:
+      - record: coldchain:http_requests:rate5m
+        expr: sum by (namespace, service) (rate(http_server_requests_seconds_count{uri!~"/actuator.*"}[5m]))
+      - record: coldchain:http_errors:rate5m
+        expr: sum by (namespace, service) (rate(http_server_requests_seconds_count{uri!~"/actuator.*", status=~"5.."}[5m]))
+      # SLI de disponibilidad: proporción de respuestas sin error 5xx.
+      - record: coldchain:availability:ratio_rate5m
+        expr: 1 - (coldchain:http_errors:rate5m / clamp_min(coldchain:http_requests:rate5m, 1e-9))
+      # SLI de latencia: p95 de las respuestas.
+      - record: coldchain:latency_p95:seconds_5m
+        expr: histogram_quantile(0.95, sum by (namespace, service, le) (rate(http_server_requests_seconds_bucket{uri!~"/actuator.*"}[5m])))
+      # SLI del flujo crítico: ingesta de mediciones respondida en menos de 500 ms.
+      - record: coldchain:ingest_fast:ratio_rate5m
+        expr: |
+          sum by (namespace) (rate(http_server_requests_seconds_bucket{service="telemetry-ingestion", uri="/api/measurements", method="POST", le="0.5"}[5m]))
+          / clamp_min(sum by (namespace) (rate(http_server_requests_seconds_count{service="telemetry-ingestion", uri="/api/measurements", method="POST"}[5m])), 1e-9)
+      - record: coldchain:availability:ratio_rate30d
+        expr: |
+          1 - (sum by (namespace, service) (increase(http_server_requests_seconds_count{uri!~"/actuator.*", status=~"5.."}[30d]))
+          / clamp_min(sum by (namespace, service) (increase(http_server_requests_seconds_count{uri!~"/actuator.*"}[30d])), 1))

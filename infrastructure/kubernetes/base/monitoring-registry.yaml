@@ -29,7 +29,13 @@ spec:
     metadata:
       labels:
         app: monitoring-registry
+        app.kubernetes.io/part-of: coldchain
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/port: "8080"
     spec:
+      serviceAccountName: monitoring-registry
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
@@ -49,6 +55,9 @@ spec:
             - name: IDENTITY_BASE_URL
               value: "http://identity-access:8083"
           envFrom:
+            - configMapRef:
+                name: coldchain-observability
+                optional: true
             - secretRef:
                 name: monitoring-registry-db
           startupProbe:

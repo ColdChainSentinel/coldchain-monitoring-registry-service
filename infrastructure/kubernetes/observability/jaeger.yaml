@@ -1,0 +1,64 @@
+# Tracing distribuido: Jaeger all-in-one recibe trazas OTLP (HTTP 4318) de los
+# servicios y las almacena en memoria (demostración).
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger
+spec:
+  selector:
+    app: jaeger
+  ports:
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+    - name: ui
+      port: 16686
+      targetPort: 16686
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger
+  template:
+    metadata:
+      labels:
+        app: jaeger
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: jaeger
+          image: jaegertracing/all-in-one:1.64.0
+          env:
+            - name: COLLECTOR_OTLP_ENABLED
+              value: "true"
+            - name: MEMORY_MAX_TRACES
+              value: "20000"
+          ports:
+            - containerPort: 4318
+            - containerPort: 16686
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 14269
+          resources:
+            requests:
+              cpu: 20m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 384Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]

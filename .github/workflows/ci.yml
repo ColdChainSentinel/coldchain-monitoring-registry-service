@@ -3,7 +3,7 @@ name: ColdChain Sentinel CI
 on:
   push:
   pull_request:
-    branches: [main]
+    branches: [main, develop]
   workflow_dispatch:
 
 permissions:
@@ -14,13 +14,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  quality:
-    name: Build, lint, tests and coverage
+  services:
+    name: ${{ matrix.service }} - build, tests and coverage
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    defaults:
-      run:
-        working-directory: services/monitoring-registry
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [identity-access, monitoring-registry, telemetry-ingestion, alert-management]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,23 +31,41 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: maven
-      - name: Compile
-        run: mvn -B -ntp -Dcheckstyle.skip compile
-      - name: Static analysis - Checkstyle
-        run: mvn -B -ntp checkstyle:check
       - name: Tests, package and coverage gate (70% lines)
-        run: mvn -B -ntp verify
+        run: sh mvnw -B -ntp -pl services/${{ matrix.service }} verify
       - name: Publish reports and executable JAR
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ci-results-${{ github.run_number }}
+          name: ci-${{ matrix.service }}-${{ github.run_number }}
           path: |
-            services/monitoring-registry/target/site/jacoco/
-            services/monitoring-registry/target/surefire-reports/
-            services/monitoring-registry/target/checkstyle-result.xml
-            services/monitoring-registry/target/monitoring-management-*.jar
+            services/${{ matrix.service }}/target/site/jacoco/
+            services/${{ matrix.service }}/target/surefire-reports/
+            services/${{ matrix.service }}/target/checkstyle-result.xml
+            services/${{ matrix.service }}/target/*.jar
           if-no-files-found: warn
-      - name: Write summary
+      - name: Coverage summary
         if: always()
-        run: python3 scripts/ci_summary.py
+        run: |
+          csv=services/${{ matrix.service }}/target/site/jacoco/jacoco.csv
+          if [ -f "$csv" ]; then
+            awk -F, 'NR>1 {m+=$8; c+=$9} END {printf "### ${{ matrix.service }}\nCobertura de líneas: %.2f %% (%d/%d)\n", 100*c/(m+c), c, m+c}' "$csv" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  frontend:
+    name: frontend - lint, tests and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build

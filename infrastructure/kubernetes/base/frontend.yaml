@@ -29,7 +29,9 @@ spec:
     metadata:
       labels:
         app: frontend
+        app.kubernetes.io/part-of: coldchain
     spec:
+      serviceAccountName: frontend
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true

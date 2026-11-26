@@ -1,0 +1,149 @@
+# Alertmanager agrupa y enruta las alertas. En el clúster de demostración el
+# receptor es un webhook interno; en producción se configura Teams o correo
+# (ver runbook, sección de escalamiento).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+data:
+  alertmanager.yml: |
+    route:
+      receiver: guardia
+      group_by: [alertname, namespace, service]
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 2h
+      routes:
+        - matchers: ['severity="critical"']
+          receiver: guardia
+          repeat_interval: 30m
+    receivers:
+      - name: guardia
+        webhook_configs:
+          - url: http://alert-sink.monitoring:8080/
+            send_resolved: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+spec:
+  selector:
+    app: alertmanager
+  ports:
+    - name: http
+      port: 9093
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alertmanager
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: alertmanager
+          image: prom/alertmanager:v0.28.0
+          args:
+            - --config.file=/etc/alertmanager/alertmanager.yml
+            - --storage.path=/alertmanager
+          ports:
+            - name: http
+              containerPort: 9093
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: http
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: config
+              mountPath: /etc/alertmanager
+            - name: data
+              mountPath: /alertmanager
+      volumes:
+        - name: config
+          configMap:
+            name: alertmanager-config
+        - name: data
+          emptyDir: {}
+---
+# Receptor de demostración: registra en su log cada notificación recibida,
+# lo que permite evidenciar el ciclo alerta -> notificación -> resolución.
+apiVersion: v1
+kind: Service
+metadata:
+  name: alert-sink
+spec:
+  selector:
+    app: alert-sink
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alert-sink
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alert-sink
+  template:
+    metadata:
+      labels:
+        app: alert-sink
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: alert-sink
+          image: mendhak/http-https-echo:35
+          env:
+            - name: HTTP_PORT
+              value: "8080"
+            - name: LOG_IGNORE_PATH
+              value: /ping
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 96Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]

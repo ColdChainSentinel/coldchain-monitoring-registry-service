@@ -1,14 +1,18 @@
+# Clase del add-on App Routing de AKS. El certificado TLS se guarda en Key Vault
+# y se publica como Secret coldchain-tls (ver README, sección AKS).
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: coldchain
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 spec:
-  ingressClassName: replace-with-internal-class
+  ingressClassName: webapprouting.kubernetes.azure.com
   tls:
-    - hosts: [coldchain.example.invalid]
+    - hosts: [coldchain.example.com]
       secretName: coldchain-tls
   rules:
-    - host: coldchain.example.invalid
+    - host: coldchain.example.com
       http:
         paths:
           - path: /

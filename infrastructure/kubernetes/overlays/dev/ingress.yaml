@@ -1,0 +1,18 @@
+# Ingress con el controlador Traefik incluido en k3s; HTTP en el puerto 8088 del host.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: coldchain
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: dev.coldchain.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  name: http

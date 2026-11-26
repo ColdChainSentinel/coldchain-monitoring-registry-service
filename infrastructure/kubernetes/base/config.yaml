@@ -1,0 +1,23 @@
+# Reglas térmicas estáticas (respaldo). Desde HU-09 los rangos se configuran por API
+# y se guardan en la base de Alert Management; este archivo solo aporta valores
+# por defecto si el ambiente los necesita.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coldchain-thermal-rules
+data:
+  thermal-rules.yaml: |
+    coldchain:
+      alerts:
+        rules: {}
+---
+# Observabilidad común: trazas OTLP hacia Jaeger y logs JSON (ECS) para Loki.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coldchain-observability
+data:
+  OTLP_TRACING_ENABLED: "true"
+  OTLP_TRACING_ENDPOINT: "http://jaeger.monitoring:4318/v1/traces"
+  TRACING_SAMPLING_PROBABILITY: "1.0"
+  LOGGING_STRUCTURED_FORMAT_CONSOLE: "ecs"

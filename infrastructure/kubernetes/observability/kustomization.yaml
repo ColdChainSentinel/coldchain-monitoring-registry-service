@@ -1,0 +1,26 @@
+# Stack de observabilidad (Agile Operations): métricas, alertas, logs y trazas.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: monitoring
+resources:
+  - namespace.yaml
+  - prometheus.yaml
+  - alertmanager.yaml
+  - kube-state-metrics.yaml
+  - loki.yaml
+  - promtail.yaml
+  - jaeger.yaml
+  - grafana.yaml
+  - ingress.yaml
+configMapGenerator:
+  - name: prometheus-config
+    files:
+      - prometheus.yml=config/prometheus.yml
+      - slo-rules.yml=config/slo-rules.yml
+      - alert-rules.yml=config/alert-rules.yml
+  - name: grafana-dashboards
+    files:
+      - dashboards/coldchain-slo.json
+      - dashboards/coldchain-kubernetes.json
+generatorOptions:
+  disableNameSuffixHash: true

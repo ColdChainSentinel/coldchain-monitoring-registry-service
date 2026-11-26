@@ -1,0 +1,31 @@
+# Ambiente dev gestionado por Argo CD (GitOps). Las etiquetas de imagen son el SHA
+# del commit que construyó cada imagen; el pipeline las actualiza al integrar en develop.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: coldchain-dev
+labels:
+  - pairs:
+      coldchain/environment: dev
+    includeSelectors: false
+resources:
+  - ../../base
+  - namespace.yaml
+  - ingress.yaml
+components:
+  - ../../components/postgres
+images:
+  - name: coldchain/identity-access
+    newName: ghcr.io/coldchainsentinel/identity-access
+    newTag: 82909f0327ad
+  - name: coldchain/monitoring-registry
+    newName: ghcr.io/coldchainsentinel/monitoring-registry
+    newTag: 82909f0327ad
+  - name: coldchain/telemetry-ingestion
+    newName: ghcr.io/coldchainsentinel/telemetry-ingestion
+    newTag: 82909f0327ad
+  - name: coldchain/alert-management
+    newName: ghcr.io/coldchainsentinel/alert-management
+    newTag: 82909f0327ad
+  - name: coldchain/frontend
+    newName: ghcr.io/coldchainsentinel/frontend
+    newTag: 82909f0327ad

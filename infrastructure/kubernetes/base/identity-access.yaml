@@ -29,7 +29,13 @@ spec:
     metadata:
       labels:
         app: identity-access
+        app.kubernetes.io/part-of: coldchain
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/port: "8083"
     spec:
+      serviceAccountName: identity-access
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
@@ -47,6 +53,9 @@ spec:
             - name: PORT
               value: "8083"
           envFrom:
+            - configMapRef:
+                name: coldchain-observability
+                optional: true
             - secretRef:
                 name: identity-access-db
             # BOOTSTRAP_ADMIN_USERNAME / BOOTSTRAP_ADMIN_PASSWORD

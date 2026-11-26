@@ -29,7 +29,13 @@ spec:
     metadata:
       labels:
         app: telemetry-ingestion
+        app.kubernetes.io/part-of: coldchain
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/port: "8081"
     spec:
+      serviceAccountName: telemetry-ingestion
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
@@ -53,6 +59,9 @@ spec:
             - name: IDENTITY_BASE_URL
               value: "http://identity-access:8083"
           envFrom:
+            - configMapRef:
+                name: coldchain-observability
+                optional: true
             - secretRef:
                 name: telemetry-ingestion-db
           startupProbe:

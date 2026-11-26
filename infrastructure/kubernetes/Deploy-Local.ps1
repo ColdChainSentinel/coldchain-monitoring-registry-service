@@ -1,14 +1,32 @@
 #Requires -Version 5.1
+<#
+.SYNOPSIS
+  Crea los Secrets de un ambiente y, salvo con -SecretsOnly, aplica su overlay.
+
+.DESCRIPTION
+  Los Secrets nunca se guardan en Git. Este script los genera una vez por ambiente
+  (contraseñas aleatorias de 32 bytes) y las reutiliza en ejecuciones posteriores.
+  - local: aplica overlays/local y espera los rollouts (desarrollo individual).
+  - dev / prod: usar -SecretsOnly; Argo CD aplica los manifiestos desde Git.
+
+.EXAMPLE
+  ./Deploy-Local.ps1                                   # Docker Desktop, overlay local
+  ./Deploy-Local.ps1 -Context default -Overlay dev -SecretsOnly
+#>
+param(
+    [string]$Context = 'docker-desktop',
+    [ValidateSet('local', 'dev', 'prod')][string]$Overlay = 'local',
+    [switch]$SecretsOnly
+)
 $ErrorActionPreference = 'Stop'
-$context = 'docker-desktop'
-$namespace = 'coldchain-local'
+$namespace = "coldchain-$Overlay"
 
 function Invoke-Kubectl {
-    & kubectl --context $context @args
+    & kubectl --context $Context @args
     if ($LASTEXITCODE -ne 0) { throw "kubectl falló (código $LASTEXITCODE)." }
 }
 
-function Set-LocalSecret($name, $values) {
+function Set-EnvironmentSecret($name, $values) {
     $manifest = @{
         apiVersion = 'v1'
         kind = 'Secret'
@@ -16,12 +34,8 @@ function Set-LocalSecret($name, $values) {
         type = 'Opaque'
         stringData = $values
     } | ConvertTo-Json -Depth 5 -Compress
-    $manifest | kubectl --context $context apply --server-side --field-manager=coldchain-local -f -
+    $manifest | kubectl --context $Context apply --server-side --field-manager=coldchain-secrets -f -
     if ($LASTEXITCODE -ne 0) { throw "No se pudo aplicar el Secret $name." }
-}
-
-if (-not (Invoke-Kubectl get namespace $namespace --ignore-not-found -o name)) {
-    Invoke-Kubectl apply -f (Join-Path $PSScriptRoot 'overlays/local/namespace.yaml')
 }
 
 function New-RandomSecret {
@@ -39,16 +53,20 @@ function Get-SecretValue($name, $key) {
     [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($value))
 }
 
+if (-not (Invoke-Kubectl get namespace $namespace --ignore-not-found -o name)) {
+    Invoke-Kubectl apply -f (Join-Path $PSScriptRoot "overlays/$Overlay/namespace.yaml")
+}
+
 $password = Get-SecretValue coldchain-postgres POSTGRES_PASSWORD
 if (-not $password) {
     $password = New-RandomSecret
-    Set-LocalSecret coldchain-postgres @{ POSTGRES_USER = 'coldchain'; POSTGRES_PASSWORD = $password }
+    Set-EnvironmentSecret coldchain-postgres @{ POSTGRES_USER = 'coldchain'; POSTGRES_PASSWORD = $password }
 }
 
 # Administrador inicial de Identity Access. La contraseña se genera una sola vez y
-# se lee con: kubectl -n coldchain-local get secret identity-access-bootstrap -o jsonpath=...
+# se lee con: kubectl -n <namespace> get secret identity-access-bootstrap -o jsonpath=...
 if (-not (Get-SecretValue identity-access-bootstrap BOOTSTRAP_ADMIN_PASSWORD)) {
-    Set-LocalSecret identity-access-bootstrap @{
+    Set-EnvironmentSecret identity-access-bootstrap @{
         BOOTSTRAP_ADMIN_USERNAME = 'admin'
         BOOTSTRAP_ADMIN_PASSWORD = New-RandomSecret
     }
@@ -61,14 +79,19 @@ $databases = @{
     'alert-management' = 'coldchain_alerts'
 }
 foreach ($service in $databases.Keys) {
-    Set-LocalSecret "$service-db" @{
+    Set-EnvironmentSecret "$service-db" @{
         DB_URL = "jdbc:postgresql://postgres:5432/$($databases[$service])"
         DB_USER = 'coldchain'
         DB_PASSWORD = $password
     }
 }
 
-Invoke-Kubectl apply -k (Join-Path $PSScriptRoot 'overlays/local')
+if ($SecretsOnly) {
+    Write-Output "Secrets listos en $namespace. Argo CD sincroniza el resto desde Git."
+    return
+}
+
+Invoke-Kubectl apply -k (Join-Path $PSScriptRoot "overlays/$Overlay")
 Invoke-Kubectl -n $namespace rollout status statefulset/postgres --timeout=240s
 
 # El script de init solo corre con un volumen vacío: en un PVC creado antes de

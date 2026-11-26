@@ -4,13 +4,9 @@ namespace: coldchain-local
 resources:
   - ../../base
   - namespace.yaml
-  - postgres.yaml
-configMapGenerator:
-  - name: coldchain-thermal-rules
-    files:
-      - thermal-rules.yaml
-generatorOptions:
-  disableNameSuffixHash: true
+  - ingress.yaml
+components:
+  - ../../components/postgres
 images:
   - name: coldchain/identity-access
     newName: coldchain-k8s-identity-access

@@ -1,0 +1,124 @@
+# Zero trust en el namespace: todo el tráfico entrante se deniega salvo lo
+# declarado aquí. Refleja el diagrama de comunicación entre servicios.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+---
+# El frontend solo recibe tráfico del controlador de Ingress.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: frontend-from-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app: frontend
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchExpressions:
+              - key: kubernetes.io/metadata.name
+                operator: In
+                values: [kube-system, ingress-nginx, app-routing-system]
+      ports:
+        - port: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: identity-access-from-apps
+spec:
+  podSelector:
+    matchLabels:
+      app: identity-access
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values: [frontend, monitoring-registry, telemetry-ingestion, alert-management]
+      ports:
+        - port: 8083
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: monitoring-registry-from-apps
+spec:
+  podSelector:
+    matchLabels:
+      app: monitoring-registry
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values: [frontend, telemetry-ingestion, alert-management]
+      ports:
+        - port: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: telemetry-ingestion-from-frontend
+spec:
+  podSelector:
+    matchLabels:
+      app: telemetry-ingestion
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: frontend
+      ports:
+        - port: 8081
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: alert-management-from-apps
+spec:
+  podSelector:
+    matchLabels:
+      app: alert-management
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values: [frontend, telemetry-ingestion]
+      ports:
+        - port: 8082
+---
+# Prometheus (namespace monitoring) lee /actuator/prometheus de los servicios Java.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: metrics-from-monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/part-of: coldchain
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - port: 8080
+        - port: 8081
+        - port: 8082
+        - port: 8083

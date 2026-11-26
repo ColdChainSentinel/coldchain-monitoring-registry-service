@@ -29,7 +29,13 @@ spec:
     metadata:
       labels:
         app: alert-management
+        app.kubernetes.io/part-of: coldchain
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/port: "8082"
     spec:
+      serviceAccountName: alert-management
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
@@ -53,6 +59,9 @@ spec:
             - name: SPRING_CONFIG_ADDITIONAL_LOCATION
               value: "file:/app/config/thermal-rules.yaml"
           envFrom:
+            - configMapRef:
+                name: coldchain-observability
+                optional: true
             - secretRef:
                 name: alert-management-db
           startupProbe:

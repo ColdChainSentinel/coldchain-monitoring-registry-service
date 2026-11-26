@@ -1,0 +1,7 @@
+# PostgreSQL dentro del clúster para ambientes locales, dev y prod de demostración.
+# En AKS se reemplaza por Azure Database for PostgreSQL (overlays/cloud).
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - postgres.yaml
+  - network-policy.yaml

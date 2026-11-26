@@ -1,0 +1,37 @@
+# Proyecto de Argo CD: limita de dónde se lee (este repositorio) y a dónde se
+# despliega (solo los namespaces de ColdChain y monitoring). Es el control de
+# acceso de la entrega continua.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: coldchain
+  namespace: argocd
+spec:
+  description: ColdChain Sentinel - ambientes dev y prod
+  sourceRepos:
+    - https://github.com/ColdChainSentinel/coldchain-monitoring-registry-service.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: coldchain-dev
+    - server: https://kubernetes.default.svc
+      namespace: coldchain-prod
+    - server: https://kubernetes.default.svc
+      namespace: monitoring
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
+  roles:
+    # Solo lectura para el equipo; la sincronización de prod la ejecuta el pipeline
+    # o un operador con el rol release-manager.
+    - name: developer
+      policies:
+        - p, proj:coldchain:developer, applications, get, coldchain/*, allow
+    - name: release-manager
+      policies:
+        - p, proj:coldchain:release-manager, applications, get, coldchain/*, allow
+        - p, proj:coldchain:release-manager, applications, sync, coldchain/*, allow
+        - p, proj:coldchain:release-manager, applications, action/*, coldchain/*, allow

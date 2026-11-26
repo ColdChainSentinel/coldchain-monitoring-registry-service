@@ -1,0 +1,21 @@
+# Durante un mantenimiento del nodo (drain) siempre queda al menos un pod del
+# frontend y de la ingesta, los dos puntos de entrada de datos.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: frontend
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: frontend
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: telemetry-ingestion
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: telemetry-ingestion

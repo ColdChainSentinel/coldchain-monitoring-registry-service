@@ -1,0 +1,55 @@
+# Alertas operativas. Cada una enlaza la sección correspondiente del runbook
+# (docs/operations/runbook.md).
+groups:
+  - name: coldchain-alerts
+    rules:
+      - alert: ColdChainServiceDown
+        expr: up{job="coldchain-services"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.service }} no responde en {{ $labels.namespace }}"
+          description: "Prometheus no puede leer las métricas del pod {{ $labels.pod }} desde hace 1 minuto."
+          runbook: "docs/operations/runbook.md#rb-01-servicio-caido"
+      - alert: ColdChainHighErrorRate
+        expr: (coldchain:http_errors:rate5m / clamp_min(coldchain:http_requests:rate5m, 1e-9)) > 0.05 and coldchain:http_requests:rate5m > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Más de 5 % de errores 5xx en {{ $labels.service }}"
+          description: "Disponibilidad de {{ $labels.service }} por debajo del SLO de 99,5 %."
+          runbook: "docs/operations/runbook.md#rb-02-errores-5xx"
+      - alert: ColdChainHighLatency
+        expr: coldchain:latency_p95:seconds_5m > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "p95 de {{ $labels.service }} sobre 500 ms"
+          description: "La latencia p95 es {{ $value | humanizeDuration }} en {{ $labels.namespace }}."
+          runbook: "docs/operations/runbook.md#rb-03-latencia-alta"
+      - alert: ColdChainPodRestarting
+        expr: increase(kube_pod_container_status_restarts_total{namespace=~"coldchain.*"}[15m]) > 2
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.pod }} se reinició más de 2 veces en 15 minutos"
+          runbook: "docs/operations/runbook.md#rb-04-reinicios"
+      - alert: ColdChainHpaAtMaximum
+        expr: kube_horizontalpodautoscaler_status_current_replicas{namespace=~"coldchain.*"} >= kube_horizontalpodautoscaler_spec_max_replicas{namespace=~"coldchain.*"}
+        for: 10m
+        labels:
+          severity: info
+        annotations:
+          summary: "HPA {{ $labels.horizontalpodautoscaler }} en su máximo de réplicas"
+          runbook: "docs/operations/runbook.md#rb-05-capacidad"
+      - alert: ColdChainErrorBudgetBurn
+        expr: (1 - coldchain:availability:ratio_rate5m) > (14.4 * 0.005) and coldchain:http_requests:rate5m > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.service }} consume el presupuesto de error 14 veces más rápido de lo permitido"
+          runbook: "docs/operations/runbook.md#rb-02-errores-5xx"

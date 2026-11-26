@@ -1,0 +1,55 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: [alertmanager:9093]
+rule_files:
+  - /etc/prometheus/slo-rules.yml
+  - /etc/prometheus/alert-rules.yml
+scrape_configs:
+  # Microservicios Java: pods anotados con prometheus.io/scrape=true.
+  - job_name: coldchain-services
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: [coldchain-dev, coldchain-prod, coldchain-local, coldchain]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: "true"
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        target_label: __metrics_path__
+      - source_labels: [__meta_kubernetes_pod_ip, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        regex: (.+);(.+)
+        replacement: $1:$2
+        target_label: __address__
+      - source_labels: [__meta_kubernetes_namespace]
+        target_label: namespace
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        target_label: service
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: pod
+  - job_name: kube-state-metrics
+    static_configs:
+      - targets: [kube-state-metrics:8080]
+  # CPU y memoria por contenedor (cAdvisor) a través del API server.
+  - job_name: cadvisor
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    authorization:
+      credentials_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    kubernetes_sd_configs:
+      - role: node
+    relabel_configs:
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/$1/proxy/metrics/cadvisor
+  - job_name: prometheus
+    static_configs:
+      - targets: [localhost:9090]

@@ -1,23 +1,44 @@
+# Producción en AKS (infrastructure/terraform-aks). Diferencias con prod local:
+# - Ingress administrado de AKS (App Routing, NGINX) con TLS.
+# - Credenciales desde Azure Key Vault mediante el CSI driver: ningún secreto en Git.
+# - PostgreSQL en el clúster sobre disco administrado (managed-csi).
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: coldchain
+labels:
+  - pairs:
+      coldchain/environment: cloud
+    includeSelectors: false
 resources:
   - ../../base
   - namespace.yaml
   - ingress.yaml
+  - secret-provider-class.yaml
+components:
+  - ../../components/postgres
+patches:
+  - path: patch-postgres-keyvault.yaml
+  - path: patch-db-urls.yaml
+  - path: patch-db-credentials.yaml
+    target:
+      kind: Deployment
+      name: identity-access|monitoring-registry|telemetry-ingestion|alert-management
+replicas:
+  - name: frontend
+    count: 2
 images:
   - name: coldchain/identity-access
     newName: ghcr.io/coldchainsentinel/identity-access
-    newTag: replace-with-commit-sha
+    newTag: IMAGE_TAG
   - name: coldchain/monitoring-registry
     newName: ghcr.io/coldchainsentinel/monitoring-registry
-    newTag: replace-with-commit-sha
+    newTag: IMAGE_TAG
   - name: coldchain/telemetry-ingestion
     newName: ghcr.io/coldchainsentinel/telemetry-ingestion
-    newTag: replace-with-commit-sha
+    newTag: IMAGE_TAG
   - name: coldchain/alert-management
     newName: ghcr.io/coldchainsentinel/alert-management
-    newTag: replace-with-commit-sha
+    newTag: IMAGE_TAG
   - name: coldchain/frontend
     newName: ghcr.io/coldchainsentinel/frontend
-    newTag: replace-with-commit-sha
+    newTag: IMAGE_TAG

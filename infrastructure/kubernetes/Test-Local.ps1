@@ -1,9 +1,13 @@
 #Requires -Version 5.1
-param([ValidateRange(1024, 65535)][int]$LocalPort = 18080)
+param(
+    [ValidateRange(1024, 65535)][int]$LocalPort = 18080,
+    [string]$Context = 'docker-desktop',
+    [string]$Namespace = 'coldchain-local'
+)
 
 $ErrorActionPreference = 'Stop'
-$context = 'docker-desktop'
-$namespace = 'coldchain-local'
+$context = $Context
+$namespace = $Namespace
 $baseUrl = "http://127.0.0.1:$LocalPort"
 $kubectl = (Get-Command kubectl -CommandType Application).Source
 
