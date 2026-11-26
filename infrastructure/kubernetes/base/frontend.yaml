@@ -50,6 +50,8 @@ spec:
               value: "http://telemetry-ingestion:8081"
             - name: ALERTS_UPSTREAM
               value: "http://alert-management:8082"
+            - name: IDENTITY_UPSTREAM
+              value: "http://identity-access:8083"
           startupProbe:
             httpGet:
               path: /
@@ -75,5 +77,18 @@ spec:
               memory: 128Mi
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 64Mi
+        - name: nginx-conf
+          emptyDir:
+            sizeLimit: 1Mi

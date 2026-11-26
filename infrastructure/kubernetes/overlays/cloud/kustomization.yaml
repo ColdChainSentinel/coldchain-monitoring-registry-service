@@ -6,6 +6,9 @@ resources:
   - namespace.yaml
   - ingress.yaml
 images:
+  - name: coldchain/identity-access
+    newName: ghcr.io/coldchainsentinel/identity-access
+    newTag: replace-with-commit-sha
   - name: coldchain/monitoring-registry
     newName: ghcr.io/coldchainsentinel/monitoring-registry
     newTag: replace-with-commit-sha

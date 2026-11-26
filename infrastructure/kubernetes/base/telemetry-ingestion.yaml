@@ -50,6 +50,8 @@ spec:
               value: "http://monitoring-registry:8080"
             - name: ALERTS_BASE_URL
               value: "http://alert-management:8082"
+            - name: IDENTITY_BASE_URL
+              value: "http://identity-access:8083"
           envFrom:
             - secretRef:
                 name: telemetry-ingestion-db
@@ -78,5 +80,13 @@ spec:
               memory: 384Mi
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi

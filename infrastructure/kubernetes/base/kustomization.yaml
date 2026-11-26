@@ -1,6 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
+  - identity-access.yaml
   - monitoring-registry.yaml
   - telemetry-ingestion.yaml
   - alert-management.yaml

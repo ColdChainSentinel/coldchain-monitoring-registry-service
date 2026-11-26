@@ -24,19 +24,38 @@ if (-not (Invoke-Kubectl get namespace $namespace --ignore-not-found -o name)) {
     Invoke-Kubectl apply -f (Join-Path $PSScriptRoot 'overlays/local/namespace.yaml')
 }
 
-$existing = Invoke-Kubectl -n $namespace get secret coldchain-postgres --ignore-not-found -o json
-if ($existing) {
-    $data = ($existing | ConvertFrom-Json).data
-    $password = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($data.POSTGRES_PASSWORD))
-} else {
+function New-RandomSecret {
     $bytes = New-Object byte[] 32
     $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
     try { $rng.GetBytes($bytes) } finally { $rng.Dispose() }
-    $password = [Convert]::ToBase64String($bytes)
+    [Convert]::ToBase64String($bytes)
+}
+
+function Get-SecretValue($name, $key) {
+    $existing = Invoke-Kubectl -n $namespace get secret $name --ignore-not-found -o json
+    if (-not $existing) { return $null }
+    $value = ($existing | ConvertFrom-Json).data.$key
+    if (-not $value) { return $null }
+    [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($value))
+}
+
+$password = Get-SecretValue coldchain-postgres POSTGRES_PASSWORD
+if (-not $password) {
+    $password = New-RandomSecret
     Set-LocalSecret coldchain-postgres @{ POSTGRES_USER = 'coldchain'; POSTGRES_PASSWORD = $password }
 }
 
+# Administrador inicial de Identity Access. La contraseña se genera una sola vez y
+# se lee con: kubectl -n coldchain-local get secret identity-access-bootstrap -o jsonpath=...
+if (-not (Get-SecretValue identity-access-bootstrap BOOTSTRAP_ADMIN_PASSWORD)) {
+    Set-LocalSecret identity-access-bootstrap @{
+        BOOTSTRAP_ADMIN_USERNAME = 'admin'
+        BOOTSTRAP_ADMIN_PASSWORD = New-RandomSecret
+    }
+}
+
 $databases = @{
+    'identity-access' = 'coldchain_identity'
     'monitoring-registry' = 'coldchain'
     'telemetry-ingestion' = 'coldchain_telemetry'
     'alert-management' = 'coldchain_alerts'
@@ -51,6 +70,15 @@ foreach ($service in $databases.Keys) {
 
 Invoke-Kubectl apply -k (Join-Path $PSScriptRoot 'overlays/local')
 Invoke-Kubectl -n $namespace rollout status statefulset/postgres --timeout=240s
-foreach ($service in @('monitoring-registry', 'telemetry-ingestion', 'alert-management', 'frontend')) {
+
+# El script de init solo corre con un volumen vacío: en un PVC creado antes de
+# integrar Identity, la base coldchain_identity se crea aquí.
+$hasIdentityDb = Invoke-Kubectl -n $namespace exec postgres-0 -- `
+    psql -U coldchain -d coldchain -tAc "SELECT 1 FROM pg_database WHERE datname = 'coldchain_identity'"
+if ("$hasIdentityDb".Trim() -ne '1') {
+    Invoke-Kubectl -n $namespace exec postgres-0 -- psql -U coldchain -d coldchain -c 'CREATE DATABASE coldchain_identity'
+}
+
+foreach ($service in @('identity-access', 'monitoring-registry', 'telemetry-ingestion', 'alert-management', 'frontend')) {
     Invoke-Kubectl -n $namespace rollout status "deployment/$service" --timeout=360s
 }

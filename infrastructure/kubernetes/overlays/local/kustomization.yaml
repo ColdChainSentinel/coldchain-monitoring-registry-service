@@ -12,6 +12,8 @@ configMapGenerator:
 generatorOptions:
   disableNameSuffixHash: true
 images:
+  - name: coldchain/identity-access
+    newName: coldchain-k8s-identity-access
   - name: coldchain/monitoring-registry
     newName: coldchain-k8s-monitoring-registry
   - name: coldchain/telemetry-ingestion

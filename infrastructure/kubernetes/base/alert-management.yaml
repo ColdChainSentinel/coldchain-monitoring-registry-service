@@ -48,6 +48,8 @@ spec:
               value: "8082"
             - name: REGISTRY_BASE_URL
               value: "http://monitoring-registry:8080"
+            - name: IDENTITY_BASE_URL
+              value: "http://identity-access:8083"
             - name: SPRING_CONFIG_ADDITIONAL_LOCATION
               value: "file:/app/config/thermal-rules.yaml"
           envFrom:
@@ -78,13 +80,19 @@ spec:
               memory: 384Mi
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
           volumeMounts:
+            - name: tmp
+              mountPath: /tmp
             - name: thermal-rules
               mountPath: /app/config
               readOnly: true
       volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi
         - name: thermal-rules
           configMap:
             name: coldchain-thermal-rules
