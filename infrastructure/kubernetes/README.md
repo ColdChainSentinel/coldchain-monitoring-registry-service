@@ -43,7 +43,7 @@ Ejecutar en PowerShell desde la raíz del repositorio:
 
 ```powershell
 kubectl --context docker-desktop get nodes
-docker compose -p coldchain-tb4 build monitoring-registry telemetry-ingestion alert-management frontend
+docker compose -p coldchain-k8s build monitoring-registry telemetry-ingestion alert-management frontend
 pwsh -NoProfile -File infrastructure/kubernetes/Deploy-Local.ps1
 pwsh -NoProfile -File infrastructure/kubernetes/Test-Local.ps1
 kubectl --context docker-desktop -n coldchain-local get deploy,pods,svc,pvc,hpa

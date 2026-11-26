@@ -13,10 +13,10 @@ generatorOptions:
   disableNameSuffixHash: true
 images:
   - name: coldchain/monitoring-registry
-    newName: coldchain-tb4-monitoring-registry
+    newName: coldchain-k8s-monitoring-registry
   - name: coldchain/telemetry-ingestion
-    newName: coldchain-tb4-telemetry-ingestion
+    newName: coldchain-k8s-telemetry-ingestion
   - name: coldchain/alert-management
-    newName: coldchain-tb4-alert-management
+    newName: coldchain-k8s-alert-management
   - name: coldchain/frontend
-    newName: coldchain-tb4-frontend
+    newName: coldchain-k8s-frontend
