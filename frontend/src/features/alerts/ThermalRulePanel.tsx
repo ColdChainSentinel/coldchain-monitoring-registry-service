@@ -1,34 +1,51 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { errorMessage, HttpError } from '../../api/http';
-import { Notice } from '../../components/Feedback';
-import { alertsApi } from '../../services/alerts';
-import { parseTemperature, TEMPERATURE_MAX, TEMPERATURE_MIN, TEMPERATURE_RANGE_TEXT } from '../../lib/validation';
-import type { MonitoringPoint, ThermalRule } from '../../types/domain';
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { errorMessage, HttpError } from "../../api/http";
+import { Notice } from "../../components/Feedback";
+import { alertsApi } from "../../services/alerts";
+import {
+  parseTemperature,
+  TEMPERATURE_MAX,
+  TEMPERATURE_MIN,
+  TEMPERATURE_RANGE_TEXT,
+} from "../../lib/validation";
+import type { MonitoringPoint, ThermalRule } from "../../types/domain";
 
 export function ThermalRulePanel({ point }: { point: MonitoringPoint }) {
   const [rule, setRule] = useState<ThermalRule | null>(null);
-  const [min, setMin] = useState('');
-  const [max, setMax] = useState('');
+  const [min, setMin] = useState("");
+  const [max, setMax] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // Evita que una respuesta lenta del rango vigente sobrescriba lo que el usuario
+  // ya empezó a escribir (detectado por la prueba E2E en Firefox).
+  const edited = useRef(false);
+
   useEffect(() => {
     const controller = new AbortController();
+    edited.current = false;
     setRule(null);
+    setMin("");
+    setMax("");
     setFeedback(null);
     setError(null);
     alertsApi
       .getRule(point.id, controller.signal)
       .then((found) => {
         setRule(found);
-        setMin(String(found.thresholdMin));
-        setMax(String(found.thresholdMax));
+        if (!edited.current) {
+          setMin(String(found.thresholdMin));
+          setMax(String(found.thresholdMax));
+        }
       })
       .catch((err) => {
-        if (err instanceof HttpError && err.status === 404) {
-          setMin('');
-          setMax('');
+        // 404: el punto aún no tiene rango; los campos quedan vacíos.
+        if (
+          !(err instanceof HttpError && err.status === 404) &&
+          !controller.signal.aborted
+        ) {
+          setError(errorMessage(err));
         }
       });
     return () => controller.abort();
@@ -46,16 +63,23 @@ export function ThermalRulePanel({ point }: { point: MonitoringPoint }) {
       return;
     }
     if (minVal >= maxVal) {
-      setError('La temperatura mínima debe ser estrictamente menor que la máxima.');
+      setError(
+        "La temperatura mínima debe ser estrictamente menor que la máxima.",
+      );
       return;
     }
     setSaving(true);
     setError(null);
     setFeedback(null);
     try {
-      const saved = await alertsApi.configureRule(point.id, { thresholdMin: minVal, thresholdMax: maxVal });
+      const saved = await alertsApi.configureRule(point.id, {
+        thresholdMin: minVal,
+        thresholdMax: maxVal,
+      });
       setRule(saved);
-      setFeedback(`Rango térmico guardado: ${String(saved.thresholdMin)} a ${String(saved.thresholdMax)} ${saved.unit}.`);
+      setFeedback(
+        `Rango térmico guardado: ${String(saved.thresholdMin)} a ${String(saved.thresholdMax)} ${saved.unit}.`,
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -64,7 +88,7 @@ export function ThermalRulePanel({ point }: { point: MonitoringPoint }) {
   }
 
   return (
-    <section className="card" style={{ marginBottom: '1.25rem' }}>
+    <section className="card" style={{ marginBottom: "1.25rem" }}>
       <div className="card-heading">
         <div>
           <span className="eyebrow">RANGO TÉRMICO</span>
@@ -73,7 +97,7 @@ export function ThermalRulePanel({ point }: { point: MonitoringPoint }) {
       </div>
       {rule && (
         <p className="section-description">
-          Rango vigente: <strong>{String(rule.thresholdMin)}</strong> a{' '}
+          Rango vigente: <strong>{String(rule.thresholdMin)}</strong> a{" "}
           <strong>{String(rule.thresholdMax)}</strong> {rule.unit}
         </p>
       )}
@@ -93,7 +117,10 @@ export function ThermalRulePanel({ point }: { point: MonitoringPoint }) {
             min={TEMPERATURE_MIN}
             max={TEMPERATURE_MAX}
             value={min}
-            onChange={(e) => setMin(e.target.value)}
+            onChange={(e) => {
+              edited.current = true;
+              setMin(e.target.value);
+            }}
             disabled={saving}
             required
           />
@@ -107,14 +134,21 @@ export function ThermalRulePanel({ point }: { point: MonitoringPoint }) {
             min={TEMPERATURE_MIN}
             max={TEMPERATURE_MAX}
             value={max}
-            onChange={(e) => setMax(e.target.value)}
+            onChange={(e) => {
+              edited.current = true;
+              setMax(e.target.value);
+            }}
             disabled={saving}
             required
           />
         </div>
         <p className="field-help">{TEMPERATURE_RANGE_TEXT}</p>
-        <button className="button button--primary" type="submit" disabled={saving}>
-          {saving ? 'Guardando…' : 'Guardar rango'}
+        <button
+          className="button button--primary"
+          type="submit"
+          disabled={saving}
+        >
+          {saving ? "Guardando…" : "Guardar rango"}
         </button>
       </form>
     </section>
