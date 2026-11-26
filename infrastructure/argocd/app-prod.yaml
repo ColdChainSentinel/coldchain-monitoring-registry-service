@@ -23,6 +23,12 @@ spec:
       kind: StatefulSet
       jsonPointers:
         - /spec/volumeClaimTemplates
+    # Las réplicas las decide el HPA; sin esto selfHeal las devolvía al valor de Git
+    # en plena carga (detectado en la prueba de estrés de 4.4.3).
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas
   syncPolicy:
     automated:
       prune: true
