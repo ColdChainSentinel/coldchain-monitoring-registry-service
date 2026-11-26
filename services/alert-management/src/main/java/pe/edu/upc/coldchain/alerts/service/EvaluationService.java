@@ -2,15 +2,18 @@ package pe.edu.upc.coldchain.alerts.service;
 
 import java.util.List;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import pe.edu.upc.coldchain.alerts.client.RegistryClient;
+import pe.edu.upc.coldchain.alerts.config.ThermalRule;
 import pe.edu.upc.coldchain.alerts.config.ThermalRulesProperties;
 import pe.edu.upc.coldchain.alerts.dto.AlertResponse;
 import pe.edu.upc.coldchain.alerts.dto.EvaluateMeasurementRequest;
 import pe.edu.upc.coldchain.alerts.dto.EvaluationResponse;
 import pe.edu.upc.coldchain.alerts.exception.MeasurementConflictException;
 import pe.edu.upc.coldchain.alerts.exception.ThermalRuleNotConfiguredException;
+import pe.edu.upc.coldchain.alerts.repository.ThermalRuleRepository;
 
 @Service
 public class EvaluationService {
@@ -18,13 +21,21 @@ public class EvaluationService {
     private final RegistryClient registry;
     private final ThermalRulesProperties properties;
     private final ThermalEvaluator evaluator;
+    private final ThermalRuleRepository ruleRepository;
 
     public EvaluationService(EvaluationStore store, RegistryClient registry, ThermalRulesProperties properties,
             ThermalEvaluator evaluator) {
+        this(store, registry, properties, evaluator, null);
+    }
+
+    @Autowired
+    public EvaluationService(EvaluationStore store, RegistryClient registry, ThermalRulesProperties properties,
+            ThermalEvaluator evaluator, ThermalRuleRepository ruleRepository) {
         this.store = store;
         this.registry = registry;
         this.properties = properties;
         this.evaluator = evaluator;
+        this.ruleRepository = ruleRepository;
     }
 
     public EvaluationResponse evaluate(EvaluateMeasurementRequest input) {
@@ -35,7 +46,7 @@ public class EvaluationService {
         }
         // Registry I/O stays outside the local insertion transaction.
         registry.requirePoint(request.monitoringPointId());
-        var rule = properties.rules().get(request.monitoringPointId());
+        var rule = resolveRule(request.monitoringPointId());
         if (rule == null) {
             throw new ThermalRuleNotConfiguredException();
         }
@@ -61,5 +72,15 @@ public class EvaluationService {
 
     public List<AlertResponse> list(UUID monitoringPointId) {
         return store.list(monitoringPointId);
+    }
+
+    private ThermalRule resolveRule(UUID pointId) {
+        if (ruleRepository != null) {
+            var dynamic = ruleRepository.findById(pointId);
+            if (dynamic.isPresent()) {
+                return new ThermalRule(dynamic.get().getThresholdMin(), dynamic.get().getThresholdMax());
+            }
+        }
+        return properties.rules().get(pointId);
     }
 }

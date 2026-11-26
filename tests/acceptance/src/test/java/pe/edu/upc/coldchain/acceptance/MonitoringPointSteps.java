@@ -16,6 +16,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import pe.edu.upc.coldchain.repository.DeviceRepository;
 import pe.edu.upc.coldchain.repository.PointRepository;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -26,6 +27,8 @@ public class MonitoringPointSteps {
     @Autowired
     private ObjectMapper mapper;
     @Autowired
+    private DeviceRepository deviceRepository;
+    @Autowired
     private PointRepository repository;
     private ResponseEntity<String> response;
     private JsonNode submitted;
@@ -33,6 +36,7 @@ public class MonitoringPointSteps {
 
     @Before
     public void resetScenario() {
+        deviceRepository.deleteAll();
         repository.deleteAll();
         response = null;
         submitted = null;
@@ -41,6 +45,7 @@ public class MonitoringPointSteps {
 
     @After
     public void cleanScenario() {
+        deviceRepository.deleteAll();
         repository.deleteAll();
     }
 

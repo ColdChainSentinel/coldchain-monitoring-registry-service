@@ -1,5 +1,32 @@
 import { parseJsonWithoutRounding, PrecisionError } from '../lib/decimal';
 
+const TOKEN_KEY = 'coldchain.session.token';
+let unauthorizedHandler: (() => void) | null = null;
+
+export function getAuthToken(): string | null {
+  try {
+    return window.localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setAuthToken(token: string | null): void {
+  try {
+    if (token) {
+      window.localStorage.setItem(TOKEN_KEY, token);
+    } else {
+      window.localStorage.removeItem(TOKEN_KEY);
+    }
+  } catch {
+    // Ignore storage unavailability in restricted environments.
+  }
+}
+
+export function setUnauthorizedHandler(handler: (() => void) | null): void {
+  unauthorizedHandler = handler;
+}
+
 export interface Problem {
   detail?: string;
   title?: string;
@@ -17,6 +44,8 @@ export class HttpError extends Error {
         (
           {
             400: 'Revisa los campos enviados.',
+            401: 'Tu sesión expiró o las credenciales son inválidas.',
+            403: 'No tienes permisos para realizar esta acción o consultar este punto.',
             404: 'No se encontró el recurso o punto de monitoreo.',
             409: 'El registro entra en conflicto con datos existentes.',
             422: 'El punto no tiene una regla térmica configurada.',
@@ -51,22 +80,28 @@ export function errorMessage(error: unknown): string {
 // No retries: POST measurements is NOT idempotent. Timeout allows both backend HTTP calls.
 export function createHttpClient(baseUrl: string) {
   async function request<T>(
-    method: 'GET' | 'POST',
+    method: 'GET' | 'POST' | 'PUT' | 'PATCH',
     path: string,
     body?: unknown,
     signal?: AbortSignal,
   ): Promise<T> {
     const timeout = AbortSignal.timeout(20_000);
+    const token = getAuthToken();
     const response = await fetch(`${baseUrl.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`, {
       method,
       headers: {
         Accept: 'application/json',
-        ...(method === 'POST' ? { 'Content-Type': 'application/json' } : {}),
+        ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
     });
     if (!response.ok) {
+      if (response.status === 401 && !path.includes('/auth/login')) {
+        setAuthToken(null);
+        unauthorizedHandler?.();
+      }
       const problem: unknown = await response.json().catch(() => undefined);
       let details: Problem | undefined;
       if (problem && typeof problem === 'object') {
@@ -85,8 +120,13 @@ export function createHttpClient(baseUrl: string) {
       }
       throw new HttpError(response.status, details);
     }
+    if (response.status === 204) {
+      return undefined as T;
+    }
     try {
-      return parseJsonWithoutRounding(await response.text()) as T;
+      const text = await response.text();
+      if (!text) return undefined as T;
+      return parseJsonWithoutRounding(text) as T;
     } catch (error) {
       if (error instanceof PrecisionError) throw error;
       throw new ResponseError();
@@ -94,6 +134,8 @@ export function createHttpClient(baseUrl: string) {
   }
   return {
     get: <T>(path: string, signal?: AbortSignal) => request<T>('GET', path, undefined, signal),
-    post: <T>(path: string, body: unknown) => request<T>('POST', path, body),
+    post: <T>(path: string, body?: unknown) => request<T>('POST', path, body),
+    put: <T>(path: string, body: unknown) => request<T>('PUT', path, body),
+    patch: <T>(path: string, body: unknown) => request<T>('PATCH', path, body),
   };
 }

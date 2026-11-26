@@ -15,3 +15,6 @@ CREATE DATABASE coldchain_telemetry;
 
 -- Crear base de datos para el microservicio de Gestión de Alertas
 CREATE DATABASE coldchain_alerts;
+
+-- Crear base de datos para el microservicio de Identidad y Acceso
+CREATE DATABASE coldchain_identity;

@@ -8,18 +8,22 @@ import { MeasurementForm } from '../features/telemetry/MeasurementForm';
 import { MeasurementTable } from '../features/telemetry/MeasurementTable';
 import { EvaluationBadge, MeasurementReceipt } from '../features/telemetry/MeasurementStatus';
 import { AlertTable } from '../features/alerts/AlertTable';
+import { ThermalRulePanel } from '../features/alerts/ThermalRulePanel';
+import { DevicePanel } from '../features/monitoring/DevicePanel';
 import { useResource, type Resource } from '../hooks/useResource';
 import { formatDate, formatTemperature, pointTypeLabel } from '../lib/format';
 import { monitoringApi } from '../services/monitoring';
 import { telemetryApi } from '../services/telemetry';
 import { alertsApi } from '../services/alerts';
-import type { CreateMeasurement, CreatePoint, Measurement, MonitoringPoint } from '../types/domain';
+import { UserAdminSection } from '../features/auth/UserAdminSection';
+import type { AuthSession, CreateMeasurement, CreatePoint, Measurement, MonitoringPoint } from '../types/domain';
 
 const sections = {
   overview: { label: 'Resumen', title: 'Resumen de monitoreo', icon: 'grid' },
   monitoring: { label: 'Puntos', title: 'Puntos de monitoreo', icon: 'point' },
   telemetry: { label: 'Mediciones', title: 'Mediciones térmicas', icon: 'thermometer' },
   alerts: { label: 'Alertas', title: 'Alertas registradas', icon: 'bell' },
+  users: { label: 'Usuarios', title: 'Cuentas y permisos', icon: 'user' },
 } satisfies Record<string, { label: string; title: string; icon: IconName }>;
 type Section = keyof typeof sections;
 
@@ -56,7 +60,13 @@ function QueryCard({
   );
 }
 
-export function HomePage() {
+export function HomePage({
+  session = null,
+  onLogout,
+}: {
+  session?: AuthSession | null;
+  onLogout?: () => void;
+} = {}) {
   const [section, setSection] = useState<Section>('overview');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createdPoint, setCreatedPoint] = useState<MonitoringPoint | null>(null);
@@ -157,20 +167,22 @@ export function HomePage() {
         <div className="sidebar-divider" />
         <p className="nav-caption">ESPACIO DE MONITOREO</p>
         <nav aria-label="Navegación principal">
-          {(Object.keys(sections) as Section[]).map((key) => (
-            <button
-              key={key}
-              className={`nav-item ${section === key ? 'nav-item--active' : ''}`}
-              aria-current={section === key ? 'page' : undefined}
-              onClick={() => setSection(key)}
-            >
-              <Icon name={sections[key].icon} />
-              <span>{sections[key].label}</span>
-              {key === 'alerts' && count(alerts) !== null && (
-                <span className="nav-count">{count(alerts)}</span>
-              )}
-            </button>
-          ))}
+          {(Object.keys(sections) as Section[])
+            .filter((key) => key !== 'users' || session?.role === 'ADMIN')
+            .map((key) => (
+              <button
+                key={key}
+                className={`nav-item ${section === key ? 'nav-item--active' : ''}`}
+                aria-current={section === key ? 'page' : undefined}
+                onClick={() => setSection(key)}
+              >
+                <Icon name={sections[key].icon} />
+                <span>{sections[key].label}</span>
+                {key === 'alerts' && count(alerts) !== null && (
+                  <span className="nav-count">{count(alerts)}</span>
+                )}
+              </button>
+            ))}
         </nav>
         <div className="sidebar-footer">
           <Icon name="snow" />
@@ -187,10 +199,22 @@ export function HomePage() {
             </h1>
             <p>Consulta y registra datos reales de tu cadena de frío.</p>
           </div>
-          <button className="button button--secondary" disabled={refreshing} onClick={refresh}>
-            <Icon name="refresh" />
-            Actualizar datos
-          </button>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            {session && (
+              <span className="section-description" style={{ margin: 0 }}>
+                {session.username} ({session.role})
+              </span>
+            )}
+            <button className="button button--secondary" disabled={refreshing} onClick={refresh}>
+              <Icon name="refresh" />
+              Actualizar datos
+            </button>
+            {onLogout && (
+              <button className="button button--secondary" onClick={onLogout}>
+                Cerrar sesión
+              </button>
+            )}
+          </div>
         </header>
         <ServiceHealth revision={revision} />
         <section className="context-bar" aria-label="Selección del punto de monitoreo">
@@ -372,24 +396,27 @@ export function HomePage() {
         )}
 
         {section === 'monitoring' && (
-          <div className="feature-grid">
-            <section className="card data-card">
-              <div className="card-heading">
-                <div>
-                  <span className="eyebrow">CATÁLOGO</span>
-                  <h2>Puntos registrados</h2>
+          <>
+            <div className="feature-grid">
+              <section className="card data-card">
+                <div className="card-heading">
+                  <div>
+                    <span className="eyebrow">CATÁLOGO</span>
+                    <h2>Puntos registrados</h2>
+                  </div>
+                  <Icon name="point" />
                 </div>
-                <Icon name="point" />
-              </div>
-              <p className="section-description">
-                Selecciona un punto para consultar su historial. No hay edición ni eliminación en este MVP.
-              </p>
-              {points.data !== null && (
-                <PointList points={points.data} selectedId={pointId} onSelect={setSelectedId} />
-              )}
-            </section>
-            <PointForm onCreate={createPoint} />
-          </div>
+                <p className="section-description">
+                  Selecciona un punto para consultar su historial. No hay edición ni eliminación en este MVP.
+                </p>
+                {points.data !== null && (
+                  <PointList points={points.data} selectedId={pointId} onSelect={setSelectedId} />
+                )}
+              </section>
+              <PointForm onCreate={createPoint} />
+            </div>
+            {selectedPoint && <DevicePanel point={selectedPoint} />}
+          </>
         )}
 
         {section === 'telemetry' &&
@@ -438,9 +465,9 @@ export function HomePage() {
         {section === 'alerts' &&
           (selectedPoint ? (
             <>
+              <ThermalRulePanel point={selectedPoint} />
               <Notice>
-                Los límites mostrados son los snapshots guardados con cada alerta. Las reglas se configuran
-                externamente por UUID; no se modifican desde esta interfaz.
+                Los límites mostrados en la tabla son los snapshots guardados con cada alerta.
               </Notice>
               <QueryCard
                 title="Historial de alertas"
@@ -464,6 +491,8 @@ export function HomePage() {
               </EmptyState>
             </section>
           ))}
+        {section === 'users' && session?.role === 'ADMIN' && <UserAdminSection points={pointList} />}
+
         <footer className="workspace-footer">
           <span>ColdChain Sentinel</span>
           <span>MVP académico · Datos de APIs reales</span>

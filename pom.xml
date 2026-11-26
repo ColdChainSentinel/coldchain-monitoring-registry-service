@@ -10,5 +10,6 @@
     <module>services/monitoring-registry</module>
     <module>services/telemetry-ingestion</module>
     <module>services/alert-management</module>
+    <module>services/identity-access</module>
   </modules>
 </project>

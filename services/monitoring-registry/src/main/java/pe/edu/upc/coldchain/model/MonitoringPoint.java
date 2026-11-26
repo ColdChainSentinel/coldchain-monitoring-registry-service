@@ -22,6 +22,8 @@ public class MonitoringPoint {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private PointType type;
+    @Column(nullable = false)
+    private boolean active = true;
 
     protected MonitoringPoint() { }
 
@@ -29,10 +31,30 @@ public class MonitoringPoint {
         this.code = code;
         this.name = name;
         this.type = type;
+        this.active = true;
     }
 
-    public UUID getId() { return id; }
-    public String getCode() { return code; }
-    public String getName() { return name; }
-    public PointType getType() { return type; }
+    public UUID getId() {
+        return id;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public PointType getType() {
+        return type;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
 }
