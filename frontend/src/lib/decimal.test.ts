@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { ExactDecimal, parseJsonWithoutRounding, PrecisionError } from './decimal';
 import { formatTemperature } from './format';
 
@@ -18,11 +18,14 @@ describe('lectura exacta de números JSON', () => {
     expect(parseJsonWithoutRounding('[3.75,0,-20,2.000]')).toEqual([3.75, 0, -20, 2]);
     expect(formatTemperature(1e-21)).toBe('1e-21 °C');
   });
-  it('informa navegadores sin contexto numérico en lugar de perder precisión silenciosamente', () => {
-    const native = JSON.parse;
-    vi.spyOn(JSON, 'parse').mockImplementation((source, reviver) =>
-      native(source, (key, value) => (reviver ? reviver(key, value) : value)),
+  it('sin source text (Firefox < 135) lee números seguros y rechaza los que perderían precisión', () => {
+    expect(parseJsonWithoutRounding('{"temperature":3.75,"code":"123456789012345678901"}', false)).toEqual({
+      temperature: 3.75,
+      code: '123456789012345678901',
+    });
+    expect(() => parseJsonWithoutRounding('{"temperature":8.000000000000000001}', false)).toThrow(
+      PrecisionError,
     );
-    expect(() => parseJsonWithoutRounding('{"temperature":3.75}')).toThrow(PrecisionError);
+    expect(() => parseJsonWithoutRounding('[1e131071]', false)).toThrow(PrecisionError);
   });
 });

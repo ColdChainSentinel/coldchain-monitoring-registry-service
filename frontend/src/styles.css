@@ -540,7 +540,7 @@ code {
   margin-bottom: 18px;
 }
 .card-heading > .icon {
-  color: #7a94a6;
+  color: #4f6273;
 }
 .card-heading .eyebrow {
   font-size: 0.6rem;
@@ -700,7 +700,7 @@ code {
   padding: 4px 7px;
 }
 .muted {
-  color: #63798c;
+  color: #4f6273;
   font-size: 0.76rem;
 }
 .table-scroll {
@@ -718,7 +718,7 @@ table {
   min-width: 650px;
 }
 th {
-  color: #6b7e90;
+  color: #4f6273;
   background: #f8fafc;
   font-weight: 600;
   font-size: 0.68rem;
@@ -749,7 +749,7 @@ time {
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 0.63rem;
-  color: #728597;
+  color: #4f6273;
   letter-spacing: -0.01em;
   margin-top: 6px;
 }
@@ -770,7 +770,7 @@ time {
   padding: 12px 23px;
   border-top: 1px solid #edf1f5;
   font-size: 0.65rem;
-  color: #728597;
+  color: #4f6273;
   background: #fcfdff;
 }
 .empty-state {
@@ -788,7 +788,7 @@ time {
   background: #f0f5f8;
   border-radius: 12px;
   margin-bottom: 16px;
-  color: #6b8ba0;
+  color: #4f6273;
 }
 .empty-state h3 {
   color: #38556b;
@@ -895,13 +895,13 @@ time {
 }
 .recent-alert p {
   font-size: 0.73rem;
-  color: #61798b;
+  color: #4f6273;
   margin: 0 0 6px;
   overflow-wrap: anywhere;
 }
 .recent-alert time {
   font-size: 0.68rem;
-  color: #758b9b;
+  color: #4f6273;
 }
 .page-note {
   display: flex;
@@ -934,7 +934,7 @@ time {
   display: flex;
   gap: 8px;
   align-items: center;
-  color: #5d788b;
+  color: #4f6273;
   font-size: 0.76rem;
   margin-block: 12px 18px;
 }
