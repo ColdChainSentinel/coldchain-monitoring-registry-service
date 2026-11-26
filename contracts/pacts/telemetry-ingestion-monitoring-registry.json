@@ -1,0 +1,107 @@
+{
+  "consumer": {
+    "name": "telemetry-ingestion"
+  },
+  "interactions": [
+    {
+      "description": "consulta de un punto existente",
+      "key": "74ad8450",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "existe un punto de monitoreo"
+        }
+      ],
+      "request": {
+        "generators": {
+          "path": {
+            "dataType": "STRING",
+            "expression": "/api/v1/monitoring-points/${pointId}",
+            "type": "ProviderState"
+          }
+        },
+        "method": "GET",
+        "path": "/api/v1/monitoring-points/5a9e6715-2054-4c44-920c-440efd3bafb2"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "id": "5a9e6715-2054-4c44-920c-440efd3bafb2"
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "generators": {
+          "body": {
+            "$.id": {
+              "dataType": "STRING",
+              "expression": "${pointId}",
+              "type": "ProviderState"
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "consulta de un punto inexistente",
+      "key": "8bf657c8",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "no existe el punto de monitoreo"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/v1/monitoring-points/00000000-0000-4000-8000-000000000000"
+      },
+      "response": {
+        "status": 404
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.6.17"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "monitoring-registry"
+  }
+}

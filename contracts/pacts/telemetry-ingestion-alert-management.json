@@ -1,0 +1,321 @@
+{
+  "consumer": {
+    "name": "telemetry-ingestion"
+  },
+  "interactions": [
+    {
+      "description": "evaluaci\u00F3n de una medici\u00F3n sin regla configurada",
+      "key": "637f2211",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "el punto no tiene rango t\u00E9rmico"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "measurementId": "c461669a-8f6f-47b4-ba90-4927de891993",
+            "monitoringPointId": "5a9e6715-2054-4c44-920c-440efd3bafb2",
+            "temperature": 5,
+            "timestamp": "2026-11-26T10:00:00Z"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "generators": {
+          "body": {
+            "$.monitoringPointId": {
+              "dataType": "STRING",
+              "expression": "${pointId}",
+              "type": "ProviderState"
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.monitoringPointId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "POST",
+        "path": "/api/alerts/evaluate"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "code": "THERMAL_RULE_NOT_CONFIGURED"
+          },
+          "contentType": "application/problem+json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/problem+json"
+          ]
+        },
+        "status": 422
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "evaluaci\u00F3n de una medici\u00F3n dentro del rango",
+      "key": "a82127be",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "el punto tiene un rango t\u00E9rmico de 2 a 8 \u00B0C"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "measurementId": "c461669a-8f6f-47b4-ba90-4927de891993",
+            "monitoringPointId": "5a9e6715-2054-4c44-920c-440efd3bafb2",
+            "temperature": 5,
+            "timestamp": "2026-11-26T10:00:00Z"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "generators": {
+          "body": {
+            "$.monitoringPointId": {
+              "dataType": "STRING",
+              "expression": "${pointId}",
+              "type": "ProviderState"
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.monitoringPointId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "POST",
+        "path": "/api/alerts/evaluate"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "measurementId": "c461669a-8f6f-47b4-ba90-4927de891993",
+            "outcome": "NO_ALERT"
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    },
+    {
+      "description": "evaluaci\u00F3n de una medici\u00F3n fuera de rango",
+      "key": "4213a92d",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "el punto tiene un rango t\u00E9rmico de 2 a 8 \u00B0C"
+        }
+      ],
+      "request": {
+        "body": {
+          "content": {
+            "measurementId": "c461669a-8f6f-47b4-ba90-4927de891993",
+            "monitoringPointId": "5a9e6715-2054-4c44-920c-440efd3bafb2",
+            "temperature": 10.5,
+            "timestamp": "2026-11-26T10:00:00Z"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "generators": {
+          "body": {
+            "$.monitoringPointId": {
+              "dataType": "STRING",
+              "expression": "${pointId}",
+              "type": "ProviderState"
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.monitoringPointId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "POST",
+        "path": "/api/alerts/evaluate"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "alert": {
+              "createdAt": "2026-11-26T10:00:01Z",
+              "id": "e2490de5-5bd3-43d5-b7c4-526e33f71304",
+              "measurementId": "c461669a-8f6f-47b4-ba90-4927de891993",
+              "monitoringPointId": "5a9e6715-2054-4c44-920c-440efd3bafb2",
+              "status": "OPEN",
+              "temperature": 10.5,
+              "thresholdMax": 8,
+              "thresholdMin": 2
+            },
+            "measurementId": "c461669a-8f6f-47b4-ba90-4927de891993",
+            "outcome": "ALERT_CREATED"
+          },
+          "contentType": "application/json; charset=UTF-8",
+          "encoded": false
+        },
+        "generators": {
+          "body": {
+            "$.alert.id": {
+              "type": "Uuid"
+            },
+            "$.alert.monitoringPointId": {
+              "dataType": "STRING",
+              "expression": "${pointId}",
+              "type": "ProviderState"
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=UTF-8"
+          ]
+        },
+        "matchingRules": {
+          "body": {
+            "$.alert.createdAt": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "\\d{4}-\\d{2}-\\d{2}T.+Z"
+                }
+              ]
+            },
+            "$.alert.id": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+                }
+              ]
+            },
+            "$.alert.monitoringPointId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.alert.temperature": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "decimal"
+                }
+              ]
+            },
+            "$.alert.thresholdMax": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "number"
+                }
+              ]
+            },
+            "$.alert.thresholdMin": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "number"
+                }
+              ]
+            }
+          },
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.6.17"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "alert-management"
+  }
+}
