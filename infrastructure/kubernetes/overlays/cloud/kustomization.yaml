@@ -49,3 +49,5 @@ configMapGenerator:
     literals:
       - SPRINGDOC_API_DOCS_ENABLED=false
       - SPRINGDOC_SWAGGER_UI_ENABLED=false
+      # Muestreo del 20 %: suficiente para diagnosticar y acota la carga de trazas.
+      - TRACING_SAMPLING_PROBABILITY=0.2

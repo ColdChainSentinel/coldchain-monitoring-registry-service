@@ -1,0 +1,90 @@
+name: ColdChain Advanced Tests
+
+# Pruebas contra un ambiente desplegado (dev por defecto) antes de promover a prod:
+# E2E en Chromium y Firefox con axe (WCAG 2.1 AA), verificaciones OWASP Top 10,
+# DAST con ZAP baseline y una carga corta con k6.
+# Requiere en el environment elegido: variable BASE_URL y secreto E2E_PASSWORD.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options: [development, production]
+        default: development
+      k6_profile:
+        type: choice
+        options: [load, stress]
+        default: load
+  schedule:
+    - cron: '0 11 * * 1-5'   # 06:00 hora de Lima, días hábiles
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: E2E y accesibilidad (Playwright + axe)
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'development' }}
+    timeout-minutes: 20
+    container: mcr.microsoft.com/playwright:v1.49.1-noble
+    defaults:
+      run:
+        working-directory: tests/e2e
+    env:
+      BASE_URL: ${{ vars.BASE_URL }}
+      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-report
+          path: tests/e2e/reports/
+
+  security:
+    name: OWASP Top 10 y ZAP baseline
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'development' }}
+    timeout-minutes: 20
+    env:
+      BASE_URL: ${{ vars.BASE_URL }}
+      ADMIN_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: OWASP Top 10 checks
+        run: sh tests/security/owasp-top10-checks.sh | tee owasp-top10.txt
+      - name: ZAP baseline (falla ante reglas FAIL)
+        run: |
+          mkdir -p zap && cp tests/security/zap-rules.tsv zap/
+          docker run --rm -u root -v "$PWD/zap:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t "$BASE_URL" -c zap-rules.tsv -r zap-baseline.html -J zap-baseline.json -I -j
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            owasp-top10.txt
+            zap/
+
+  performance:
+    name: Carga con k6
+    needs: [e2e]
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'development' }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: k6 ${{ inputs.k6_profile || 'load' }}
+        run: |
+          mkdir -p k6
+          docker run --rm -e BASE_URL="${{ vars.BASE_URL }}" -e ADMIN_PASSWORD="${{ secrets.E2E_PASSWORD }}" \
+            -e PROFILE="${{ inputs.k6_profile || 'load' }}" -v "$PWD/tests/performance:/scripts:ro" -v "$PWD/k6:/out" \
+            grafana/k6:0.55.0 run --quiet /scripts/ingestion-load.js
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-summary
+          path: k6/

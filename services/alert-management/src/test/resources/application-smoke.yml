@@ -1,4 +1,10 @@
 spring:
+  # Pact (junit5spring) agrega Apache HttpClient 5 al classpath de pruebas; su pool
+  # admite 5 conexiones por ruta y alteraba las pruebas de concurrencia. Se fija el
+  # cliente JDK, el mismo que usa la aplicación desplegada.
+  http:
+    client:
+      factory: jdk
   datasource:
     url: ${TEST_DB_URL:jdbc:h2:mem:alerts;MODE=PostgreSQL;DB_CLOSE_DELAY=-1}
     username: ${TEST_DB_USER:sa}

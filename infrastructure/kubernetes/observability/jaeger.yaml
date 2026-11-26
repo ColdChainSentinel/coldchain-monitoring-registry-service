@@ -1,5 +1,6 @@
 # Tracing distribuido: Jaeger all-in-one recibe trazas OTLP (HTTP 4318) de los
-# servicios y las almacena en memoria (demostración).
+# servicios y las almacena en memoria (demostración). Límite de 768 Mi y 8000
+# trazas: con 384 Mi y 20000 trazas se reinició por OOMKilled en la prueba de estrés.
 apiVersion: v1
 kind: Service
 metadata:
@@ -42,7 +43,7 @@ spec:
             - name: COLLECTOR_OTLP_ENABLED
               value: "true"
             - name: MEMORY_MAX_TRACES
-              value: "20000"
+              value: "8000"
           ports:
             - containerPort: 4318
             - containerPort: 16686
@@ -56,7 +57,7 @@ spec:
               memory: 64Mi
             limits:
               cpu: 500m
-              memory: 384Mi
+              memory: 768Mi
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
