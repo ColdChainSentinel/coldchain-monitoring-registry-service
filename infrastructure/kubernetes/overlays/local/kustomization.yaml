@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: coldchain-local
+resources:
+  - ../../base
+  - namespace.yaml
+  - postgres.yaml
+configMapGenerator:
+  - name: coldchain-thermal-rules
+    files:
+      - thermal-rules.yaml
+generatorOptions:
+  disableNameSuffixHash: true
+images:
+  - name: coldchain/monitoring-registry
+    newName: coldchain-tb4-monitoring-registry
+  - name: coldchain/telemetry-ingestion
+    newName: coldchain-tb4-telemetry-ingestion
+  - name: coldchain/alert-management
+    newName: coldchain-tb4-alert-management
+  - name: coldchain/frontend
+    newName: coldchain-tb4-frontend

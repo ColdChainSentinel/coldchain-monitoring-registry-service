@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: alert-management
+spec:
+  selector:
+    app: alert-management
+  ports:
+    - name: http
+      port: 8082
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alert-management
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: alert-management
+  template:
+    metadata:
+      labels:
+        app: alert-management
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: alert-management
+          image: coldchain/alert-management:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8082
+          env:
+            - name: PORT
+              value: "8082"
+            - name: REGISTRY_BASE_URL
+              value: "http://monitoring-registry:8080"
+            - name: SPRING_CONFIG_ADDITIONAL_LOCATION
+              value: "file:/app/config/thermal-rules.yaml"
+          envFrom:
+            - secretRef:
+                name: alert-management-db
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 36
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 192Mi
+            limits:
+              cpu: 500m
+              memory: 384Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: thermal-rules
+              mountPath: /app/config
+              readOnly: true
+      volumes:
+        - name: thermal-rules
+          configMap:
+            name: coldchain-thermal-rules
