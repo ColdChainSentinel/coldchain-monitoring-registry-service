@@ -19,6 +19,9 @@ ENV VITE_REGISTRY_BASE_URL=/registry
 ENV VITE_TELEMETRY_BASE_URL=/telemetry
 ENV VITE_ALERTS_BASE_URL=/alerts
 ENV VITE_IDENTITY_BASE_URL=/identity
+# Versión visible en la interfaz: SHA del commit que construyó la imagen.
+ARG APP_VERSION=local
+ENV VITE_APP_VERSION=$APP_VERSION
 
 # Generar el paquete de producción en /app/dist
 RUN npm run build

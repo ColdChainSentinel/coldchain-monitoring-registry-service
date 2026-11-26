@@ -4,6 +4,7 @@ interface ImportMetaEnv {
   readonly VITE_REGISTRY_BASE_URL?: string;
   readonly VITE_TELEMETRY_BASE_URL?: string;
   readonly VITE_ALERTS_BASE_URL?: string;
+  readonly VITE_APP_VERSION?: string;
 }
 
 interface ImportMeta {

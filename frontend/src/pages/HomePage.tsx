@@ -492,7 +492,7 @@ export function HomePage({
 
         <footer className="workspace-footer">
           <span>ColdChain Sentinel</span>
-          <span>Cadena de frío bajo control</span>
+          <span>Versión {import.meta.env.VITE_APP_VERSION || 'local'}</span>
         </footer>
       </main>
     </div>

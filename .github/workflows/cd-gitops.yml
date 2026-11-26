@@ -56,6 +56,7 @@ jobs:
             context="services/$service"; [ "$service" = frontend ] && context=frontend
             docker build --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
               --label "org.opencontainers.image.revision=$GITHUB_SHA" \
+              --build-arg "APP_VERSION=${{ steps.tag.outputs.tag }}" \
               -t "$REGISTRY/$service:${{ steps.tag.outputs.tag }}" "$context"
           done
       - name: Scan images (fail on fixable HIGH/CRITICAL)
