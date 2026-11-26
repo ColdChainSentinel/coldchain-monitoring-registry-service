@@ -76,6 +76,7 @@ export default function (data) {
 }
 
 export function handleSummary(data) {
+  delete data.setup_data; // contiene el token de sesión: nunca se guarda en el reporte
   return { stdout: textSummary(data), [`/out/k6-${PROFILE}-summary.json`]: JSON.stringify(data, null, 2) };
 }
 

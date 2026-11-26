@@ -1,0 +1,56 @@
+<testsuites id="" name="" tests="16" failures="0" skipped="1" errors="0" time="108.291852">
+<testsuite name="accessibility.spec.ts" timestamp="2026-11-26T22:22:21.501Z" hostname="chromium" tests="4" failures="0" skipped="0" time="13.48" errors="0">
+<testcase name="WCAG 2.1 AA · login" classname="accessibility.spec.ts" time="1.99">
+</testcase>
+<testcase name="WCAG 2.1 AA · resumen" classname="accessibility.spec.ts" time="6.173">
+</testcase>
+<testcase name="WCAG 2.1 AA · mediciones" classname="accessibility.spec.ts" time="2.596">
+</testcase>
+<testcase name="WCAG 2.1 AA · alertas" classname="accessibility.spec.ts" time="2.721">
+</testcase>
+</testsuite>
+<testsuite name="auth.spec.ts" timestamp="2026-11-26T22:22:21.501Z" hostname="chromium" tests="2" failures="0" skipped="0" time="2.228" errors="0">
+<testcase name="HU-01 · Acceso a la plataforma › rechaza credenciales incorrectas sin revelar qué dato falló (CA-02)" classname="auth.spec.ts" time="0.937">
+</testcase>
+<testcase name="HU-01 · Acceso a la plataforma › inicia sesión y al cerrarla exige autenticarse de nuevo (CA-01, CA-03)" classname="auth.spec.ts" time="1.291">
+</testcase>
+</testsuite>
+<testsuite name="browser-specific.spec.ts" timestamp="2026-11-26T22:22:21.501Z" hostname="chromium" tests="1" failures="0" skipped="1" time="0.193" errors="0">
+<testcase name="Uso en móvil @chromium › el conductor puede navegar y registrar una medición con pantalla táctil" classname="browser-specific.spec.ts" time="0.193">
+<properties>
+<property name="skip" value="Solo en el proyecto mobile-chromium">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="monitoring-flow.spec.ts" timestamp="2026-11-26T22:22:21.501Z" hostname="chromium" tests="1" failures="0" skipped="0" time="4.826" errors="0">
+<testcase name="Flujo de monitoreo térmico › registra un punto, configura su rango y genera una alerta por desviación" classname="monitoring-flow.spec.ts" time="4.826">
+</testcase>
+</testsuite>
+<testsuite name="accessibility.spec.ts" timestamp="2026-11-26T22:22:21.501Z" hostname="firefox" tests="4" failures="0" skipped="0" time="14.905" errors="0">
+<testcase name="WCAG 2.1 AA · login" classname="accessibility.spec.ts" time="3.274">
+</testcase>
+<testcase name="WCAG 2.1 AA · resumen" classname="accessibility.spec.ts" time="4.447">
+</testcase>
+<testcase name="WCAG 2.1 AA · mediciones" classname="accessibility.spec.ts" time="3.332">
+</testcase>
+<testcase name="WCAG 2.1 AA · alertas" classname="accessibility.spec.ts" time="3.852">
+</testcase>
+</testsuite>
+<testsuite name="auth.spec.ts" timestamp="2026-11-26T22:22:21.501Z" hostname="firefox" tests="2" failures="0" skipped="0" time="3.475" errors="0">
+<testcase name="HU-01 · Acceso a la plataforma › rechaza credenciales incorrectas sin revelar qué dato falló (CA-02)" classname="auth.spec.ts" time="1.111">
+</testcase>
+<testcase name="HU-01 · Acceso a la plataforma › inicia sesión y al cerrarla exige autenticarse de nuevo (CA-01, CA-03)" classname="auth.spec.ts" time="2.364">
+</testcase>
+</testsuite>
+<testsuite name="monitoring-flow.spec.ts" timestamp="2026-11-26T22:22:21.501Z" hostname="firefox" tests="1" failures="0" skipped="0" time="3.909" errors="0">
+<testcase name="Flujo de monitoreo térmico › registra un punto, configura su rango y genera una alerta por desviación" classname="monitoring-flow.spec.ts" time="3.909">
+</testcase>
+</testsuite>
+<testsuite name="browser-specific.spec.ts" timestamp="2026-11-26T22:22:21.501Z" hostname="mobile-chromium" tests="1" failures="0" skipped="0" time="1.896" errors="0">
+<testcase name="Uso en móvil @chromium › el conductor puede navegar y registrar una medición con pantalla táctil" classname="browser-specific.spec.ts" time="1.896">
+</testcase>
+</testsuite>
+</testsuites>

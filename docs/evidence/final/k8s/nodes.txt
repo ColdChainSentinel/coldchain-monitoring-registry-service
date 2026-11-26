@@ -1,0 +1,3 @@
+$ kubectl get nodes -o wide
+NAME           STATUS   ROLES                  AGE   VERSION        INTERNAL-IP   EXTERNAL-IP   OS-IMAGE           KERNEL-VERSION                     CONTAINER-RUNTIME
+e1232a964275   Ready    control-plane,master   95m   v1.31.4+k3s1   172.17.0.2    <none>        K3s v1.31.4+k3s1   6.6.87.2-microsoft-standard-WSL2   containerd://1.7.23-k3s2

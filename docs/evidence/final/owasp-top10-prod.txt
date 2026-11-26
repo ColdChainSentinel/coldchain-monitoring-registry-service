@@ -1,0 +1,17 @@
+PASS  A01    API sin token rechazada (HTTP 401)
+PASS  A01    Token inválido rechazado (HTTP 401)
+PASS  A01    Validación antes de modificar permisos (HTTP 400)
+PASS  A02    La API de usuarios no expone contraseñas ni hashes (HTTP 0)
+PASS  A03    Inyección SQL en código de punto rechazada por validación (HTTP 400)
+PASS  A03    Inyección en parámetro UUID rechazada (HTTP 400)
+PASS  A04    Temperatura fuera de rango rechazada por la API (HTTP 400)
+PASS  A05    Actuator /env no expuesto (HTTP 404)
+PASS  A05    Métricas internas no expuestas por el proxy (HTTP 404)
+PASS  A05    Cabecera X-Frame-Options (HTTP 1)
+PASS  A05    Cabecera Content-Security-Policy (HTTP 1)
+PASS  A05    Versión del servidor oculta (HTTP 0)
+PASS  A07    Credenciales incorrectas rechazadas (HTTP 401)
+PASS  A07    La sesión cerrada deja de ser válida (HTTP 401)
+PASS  A09    Errores sin stack trace (HTTP 0)
+
+Resultado: 15 PASS, 0 FAIL

@@ -1,0 +1,26 @@
+$ kubectl -n argocd get app coldchain-prod
+NAME             SYNC STATUS   HEALTH STATUS
+coldchain-prod   OutOfSync     Progressing
+
+$ kubectl -n coldchain-prod get pods -l app=frontend
+NAME                        READY   STATUS             RESTARTS      AGE
+frontend-59995bf678-6cfbb   0/1     CrashLoopBackOff   3 (34s ago)   101s
+frontend-667d6c57b5-2jhtc   1/1     Running            0             4m5s
+frontend-667d6c57b5-qtk9m   1/1     Running            0             4m
+
+$ kubectl -n coldchain-prod rollout status deploy/frontend --timeout=5s
+Waiting for deployment "frontend" rollout to finish: 1 out of 2 new replicas have been updated...
+error: timed out waiting for the condition
+
+$ kubectl -n coldchain-prod logs <pod nuevo>
+2026/11/26 22:27:52 [emerg] 1#1: host not found in upstream "identity-acces" in /etc/nginx/conf.d/default.conf:74
+nginx: [emerg] host not found in upstream "identity-acces" in /etc/nginx/conf.d/default.conf:74
+
+--- Después del rollback ---
+$ kubectl -n argocd get app coldchain-prod
+NAME             SYNC STATUS   HEALTH STATUS
+coldchain-prod   Synced        Healthy
+$ kubectl -n coldchain-prod get pods -l app=frontend
+NAME                        READY   STATUS    RESTARTS   AGE
+frontend-667d6c57b5-2jhtc   1/1     Running   0          7m2s
+frontend-667d6c57b5-qtk9m   1/1     Running   0          6m57s

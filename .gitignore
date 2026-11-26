@@ -27,3 +27,4 @@ config/alerts/thermal-rules.yml
 backend.hcl
 !*.tfvars.example
 .claude
+.k3s/

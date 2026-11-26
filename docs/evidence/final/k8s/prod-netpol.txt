@@ -1,0 +1,10 @@
+$ kubectl -n coldchain-prod get networkpolicy
+NAME                                POD-SELECTOR                          AGE
+alert-management-from-apps          app=alert-management                  83m
+default-deny-ingress                <none>                                83m
+frontend-from-ingress               app=frontend                          83m
+identity-access-from-apps           app=identity-access                   83m
+metrics-from-monitoring             app.kubernetes.io/part-of=coldchain   83m
+monitoring-registry-from-apps       app=monitoring-registry               83m
+postgres-from-apps                  app=postgres                          83m
+telemetry-ingestion-from-frontend   app=telemetry-ingestion               83m

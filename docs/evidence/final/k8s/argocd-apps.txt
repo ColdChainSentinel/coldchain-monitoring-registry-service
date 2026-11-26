@@ -1,0 +1,8 @@
+$ kubectl -n argocd get applications,appprojects
+NAME                                     SYNC STATUS   HEALTH STATUS
+application.argoproj.io/coldchain-dev    Synced        Healthy
+application.argoproj.io/coldchain-prod   Synced        Progressing
+
+NAME                               AGE
+appproject.argoproj.io/coldchain   83m
+appproject.argoproj.io/default     87m

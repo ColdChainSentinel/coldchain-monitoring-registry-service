@@ -1,0 +1,20 @@
+Verifying a pact between telemetry-ingestion and monitoring-registry
+    returns a response which
+      has status code 200 (OK)
+      has a matching body (OK)
+Verifying a pact between telemetry-ingestion and monitoring-registry
+    returns a response which
+      has status code 404 (OK)
+      has a matching body (OK)
+Verifying a pact between telemetry-ingestion and alert-management
+    returns a response which
+      has status code 422 (OK)
+      has a matching body (OK)
+Verifying a pact between telemetry-ingestion and alert-management
+    returns a response which
+      has status code 200 (OK)
+      has a matching body (OK)
+Verifying a pact between telemetry-ingestion and alert-management
+    returns a response which
+      has status code 200 (OK)
+      has a matching body (OK)

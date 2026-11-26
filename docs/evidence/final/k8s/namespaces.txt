@@ -1,0 +1,10 @@
+$ kubectl get ns --show-labels
+NAME              STATUS   AGE   LABELS
+argocd            Active   88m   kubernetes.io/metadata.name=argocd
+coldchain-dev     Active   83m   app.kubernetes.io/instance=coldchain-dev,coldchain/environment=dev,kubernetes.io/metadata.name=coldchain-dev
+coldchain-prod    Active   83m   app.kubernetes.io/instance=coldchain-prod,coldchain/environment=prod,kubernetes.io/metadata.name=coldchain-prod
+default           Active   95m   kubernetes.io/metadata.name=default
+kube-node-lease   Active   95m   kubernetes.io/metadata.name=kube-node-lease
+kube-public       Active   95m   kubernetes.io/metadata.name=kube-public
+kube-system       Active   95m   kubernetes.io/metadata.name=kube-system
+monitoring        Active   89m   kubernetes.io/metadata.name=monitoring

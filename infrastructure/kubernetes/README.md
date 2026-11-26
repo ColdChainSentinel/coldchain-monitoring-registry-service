@@ -109,3 +109,42 @@ Para el primer despliegue de integración en nube:
 La integración con la identidad de Azure, la automatización del paso de despliegue,
 la promoción entre ambientes y el ensayo de rollback en nube deben completarse en el
 entorno del equipo. La Azure Function conserva su unidad de despliegue independiente.
+
+## Entrega final: ambientes GitOps, observabilidad y nube
+
+| Ruta | Uso |
+|---|---|
+| `overlays/dev`, `overlays/prod` | Ambientes gestionados por Argo CD (`infrastructure/argocd`). La etiqueta de imagen es el SHA del commit; `scripts/cd/*.sh` la actualizan (build, promote, rollback) y `.github/workflows/cd-gitops.yml` los ejecuta. |
+| `overlays/cloud` | AKS (`infrastructure/terraform-aks`): App Routing con TLS, secretos desde Key Vault (CSI) y PostgreSQL sobre `managed-csi`. |
+| `components/postgres` | PostgreSQL en el clúster con su NetworkPolicy. |
+| `observability/` | Prometheus (SLO y alertas), Alertmanager, Grafana, Loki, Promtail, Jaeger y kube-state-metrics. |
+
+Clúster local de la entrega (k3s en Docker, con Traefik y metrics-server):
+
+```powershell
+docker run -d --name coldchain-k3s --privileged -p 6443:6443 -p 8088:80 -v coldchain-k3s-data:/var/lib/rancher/k3s -e K3S_KUBECONFIG_OUTPUT=/output/kubeconfig.yaml -e K3S_KUBECONFIG_MODE=666 -v ${PWD}/.k3s:/output rancher/k3s:v1.31.4-k3s1 server
+$env:KUBECONFIG = "$PWD/.k3s/kubeconfig.yaml"
+./infrastructure/kubernetes/Deploy-Observability.ps1 -Context default
+./infrastructure/kubernetes/Deploy-Local.ps1 -Context default -Overlay dev -SecretsOnly
+./infrastructure/kubernetes/Deploy-Local.ps1 -Context default -Overlay prod -SecretsOnly
+./infrastructure/argocd/Install-ArgoCD.ps1 -Context default
+sh scripts/cd/build-local-images.sh    # imágenes del commit actual dentro de k3s
+```
+
+URLs: `http://coldchain.localhost:8088` (prod), `http://dev.coldchain.localhost:8088`,
+`grafana`, `prometheus`, `alertmanager`, `jaeger` y `argocd` `.localhost:8088`.
+Runbook: `docs/operations/runbook.md`. SLO: `docs/operations/slo.md`.
+
+### AKS
+
+```powershell
+cd infrastructure/terraform-aks
+terraform init -backend-config=backend.hcl
+terraform apply
+az aks get-credentials -g rg-coldchain-aks -n (terraform output -raw cluster_name)
+```
+
+Reemplazar `KEY_VAULT_NAME`, `TENANT_ID` y `CSI_IDENTITY_CLIENT_ID` en
+`overlays/cloud/secret-provider-class.yaml` con `terraform output`, el host del Ingress y
+`IMAGE_TAG`; luego registrar una Application de Argo CD apuntando a `overlays/cloud`.
+Detener el clúster fuera de uso: `az aks stop`.

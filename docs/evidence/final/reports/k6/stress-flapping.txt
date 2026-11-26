@@ -1,0 +1,5 @@
+
+Perfil stress: 10030 solicitudes, 37.1 req/s
+Latencia ingesta: avg 983 ms · p90 1869 ms · p95 2431 ms · p99 4284 ms · max 9815 ms
+Errores: 1.36 % · Evaluaciones COMPLETED: 99.7 %
+time="2026-11-26T22:49:07Z" level=error msg="thresholds on metrics 'http_req_duration{name:ingest}, ingest_errors' have been crossed"

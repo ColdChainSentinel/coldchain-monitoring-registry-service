@@ -1,0 +1,17 @@
+$ kubectl -n coldchain-prod top pods
+NAME                                   CPU(cores)   MEMORY(bytes)   
+alert-management-554f84698d-hxlct      140m         350Mi           
+alert-management-554f84698d-q55t2      175m         334Mi           
+alert-management-554f84698d-tzczj      499m         101Mi           
+frontend-667d6c57b5-2jhtc              21m          6Mi             
+frontend-667d6c57b5-qtk9m              26m          6Mi             
+identity-access-6dbcf69b6-956gp        257m         293Mi           
+identity-access-6dbcf69b6-9mb4s        181m         282Mi           
+identity-access-6dbcf69b6-bm62k        209m         267Mi           
+monitoring-registry-69cc88d699-4b5qh   85m          308Mi           
+monitoring-registry-69cc88d699-8bc6g   151m         333Mi           
+monitoring-registry-69cc88d699-csln9   127m         325Mi           
+postgres-0                             412m         248Mi           
+telemetry-ingestion-56d9f774dc-9qjwq   113m         343Mi           
+telemetry-ingestion-56d9f774dc-9rcgv   204m         331Mi           
+telemetry-ingestion-56d9f774dc-kf6z4   170m         333Mi           

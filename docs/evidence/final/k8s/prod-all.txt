@@ -1,0 +1,31 @@
+$ kubectl -n coldchain-prod get deploy,sts,svc,ingress,hpa,pdb
+NAME                                  READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/alert-management      2/3     3            2           83m
+deployment.apps/frontend              2/2     2            2           83m
+deployment.apps/identity-access       3/3     3            3           83m
+deployment.apps/monitoring-registry   3/3     3            3           83m
+deployment.apps/telemetry-ingestion   3/3     3            3           83m
+
+NAME                        READY   AGE
+statefulset.apps/postgres   1/1     83m
+
+NAME                          TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/alert-management      ClusterIP   10.43.35.127    <none>        8082/TCP   83m
+service/frontend              ClusterIP   10.43.205.140   <none>        8080/TCP   83m
+service/identity-access       ClusterIP   10.43.227.244   <none>        8083/TCP   83m
+service/monitoring-registry   ClusterIP   10.43.201.187   <none>        8080/TCP   83m
+service/postgres              ClusterIP   None            <none>        5432/TCP   83m
+service/telemetry-ingestion   ClusterIP   10.43.22.156    <none>        8081/TCP   83m
+
+NAME                                  CLASS     HOSTS                 ADDRESS      PORTS   AGE
+ingress.networking.k8s.io/coldchain   traefik   coldchain.localhost   172.17.0.2   80      83m
+
+NAME                                                      REFERENCE                        TARGETS         MINPODS   MAXPODS   REPLICAS   AGE
+horizontalpodautoscaler.autoscaling/alert-management      Deployment/alert-management      cpu: 205%/70%   1         3         3          83m
+horizontalpodautoscaler.autoscaling/identity-access       Deployment/identity-access       cpu: 215%/70%   1         3         3          19m
+horizontalpodautoscaler.autoscaling/monitoring-registry   Deployment/monitoring-registry   cpu: 121%/70%   1         3         3          19m
+horizontalpodautoscaler.autoscaling/telemetry-ingestion   Deployment/telemetry-ingestion   cpu: 193%/70%   1         3         3          83m
+
+NAME                                             MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
+poddisruptionbudget.policy/frontend              1               N/A               1                     83m
+poddisruptionbudget.policy/telemetry-ingestion   1               N/A               2                     83m

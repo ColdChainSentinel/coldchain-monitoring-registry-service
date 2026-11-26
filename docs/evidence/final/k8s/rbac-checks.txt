@@ -1,0 +1,6 @@
+$ kubectl auth can-i delete secrets --as=jdoe --as-group=coldchain-developers -n coldchain-prod
+no
+$ kubectl auth can-i patch deployments/scale --as=ops --as-group=coldchain-operators -n coldchain-prod
+yes
+$ kubectl auth can-i get secrets --as=ops --as-group=coldchain-operators -n coldchain-prod
+no

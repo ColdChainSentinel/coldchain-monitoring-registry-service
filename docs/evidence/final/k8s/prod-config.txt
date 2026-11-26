@@ -1,0 +1,22 @@
+$ kubectl -n coldchain-prod get configmap,secret,serviceaccount
+NAME                                           DATA   AGE
+configmap/coldchain-observability-756m22g594   6      73m
+configmap/coldchain-postgres-init              1      83m
+configmap/coldchain-thermal-rules              1      83m
+configmap/kube-root-ca.crt                     1      83m
+
+NAME                               TYPE     DATA   AGE
+secret/alert-management-db         Opaque   3      83m
+secret/coldchain-postgres          Opaque   2      83m
+secret/identity-access-bootstrap   Opaque   2      83m
+secret/identity-access-db          Opaque   3      83m
+secret/monitoring-registry-db      Opaque   3      83m
+secret/telemetry-ingestion-db      Opaque   3      83m
+
+NAME                                 SECRETS   AGE
+serviceaccount/alert-management      0         83m
+serviceaccount/default               0         83m
+serviceaccount/frontend              0         83m
+serviceaccount/identity-access       0         83m
+serviceaccount/monitoring-registry   0         83m
+serviceaccount/telemetry-ingestion   0         83m

@@ -1,0 +1,8 @@
+$ kubectl -n coldchain-prod get role,rolebinding
+NAME                                                CREATED AT
+role.rbac.authorization.k8s.io/coldchain-operator   2026-11-26T21:36:25Z
+role.rbac.authorization.k8s.io/coldchain-viewer     2026-11-26T21:36:25Z
+
+NAME                                                       ROLE                      AGE
+rolebinding.rbac.authorization.k8s.io/coldchain-operator   Role/coldchain-operator   83m
+rolebinding.rbac.authorization.k8s.io/coldchain-viewer     Role/coldchain-viewer     83m

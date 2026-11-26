@@ -1,0 +1,15 @@
+$ kubectl -n coldchain-prod describe networkpolicy identity-access-from-apps
+Name:         identity-access-from-apps
+Namespace:    coldchain-prod
+Created on:   2026-11-26 16:36:24 -0500 -05
+Labels:       app.kubernetes.io/instance=coldchain-prod
+              coldchain/environment=prod
+Annotations:  <none>
+Spec:
+  PodSelector:     app=identity-access
+  Allowing ingress traffic:
+    To Port: 8083/TCP
+    From:
+      PodSelector: app in (alert-management,frontend,monitoring-registry,telemetry-ingestion)
+  Not affecting egress traffic
+  Policy Types: Ingress

@@ -1,0 +1,24 @@
+$ kubectl -n monitoring get deploy,ds,svc,ingress
+NAME                                 READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/alert-sink           1/1     1            1           89m
+deployment.apps/alertmanager         1/1     1            1           89m
+deployment.apps/grafana              1/1     1            1           89m
+deployment.apps/jaeger               0/1     1            0           89m
+deployment.apps/kube-state-metrics   1/1     1            1           89m
+deployment.apps/loki                 1/1     1            1           89m
+deployment.apps/prometheus           1/1     1            1           89m
+
+NAME                      DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
+daemonset.apps/promtail   1         1         1       1            1           <none>          89m
+
+NAME                         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)              AGE
+service/alert-sink           ClusterIP   10.43.231.44    <none>        8080/TCP             89m
+service/alertmanager         ClusterIP   10.43.221.124   <none>        9093/TCP             89m
+service/grafana              ClusterIP   10.43.249.216   <none>        3000/TCP             89m
+service/jaeger               ClusterIP   10.43.233.48    <none>        4318/TCP,16686/TCP   89m
+service/kube-state-metrics   ClusterIP   10.43.139.251   <none>        8080/TCP             89m
+service/loki                 ClusterIP   10.43.247.62    <none>        3100/TCP             89m
+service/prometheus           ClusterIP   10.43.68.254    <none>        9090/TCP             89m
+
+NAME                                      CLASS     HOSTS                                                                 ADDRESS      PORTS   AGE
+ingress.networking.k8s.io/observability   traefik   grafana.localhost,prometheus.localhost,jaeger.localhost + 1 more...   172.17.0.2   80      89m

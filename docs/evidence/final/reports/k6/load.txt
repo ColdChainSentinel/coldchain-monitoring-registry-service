@@ -1,0 +1,3 @@
+Perfil load: 4880 solicitudes, 26.7 req/s
+Latencia ingesta: avg 450 ms · p90 818 ms · p95 968 ms · p99 1380 ms · max 4228 ms
+Errores: 0.00 % · Evaluaciones COMPLETED: 100.0 %
