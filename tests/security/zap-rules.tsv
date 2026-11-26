@@ -1,0 +1,13 @@
+# Reglas de ZAP baseline/API scan: IGNORE (no aplica), WARN (registrar), FAIL (bloquear).
+# El pipeline falla ante cualquier FAIL.
+10020	FAIL	(Anti-clickjacking Header)
+10021	FAIL	(X-Content-Type-Options Header Missing)
+10038	FAIL	(Content Security Policy Header Not Set)
+10055	WARN	(CSP: style-src unsafe-inline, requerido por estilos en línea de React)
+10096	WARN	(Timestamp Disclosure: fechas de negocio en respuestas JSON)
+90022	FAIL	(Application Error Disclosure)
+40012	FAIL	(Cross Site Scripting Reflected)
+40014	FAIL	(Cross Site Scripting Persistent)
+40018	FAIL	(SQL Injection)
+90019	FAIL	(Server Side Include)
+90020	FAIL	(Remote OS Command Injection)

@@ -1,0 +1,13 @@
+{
+  "name": "coldchain-e2e",
+  "private": true,
+  "description": "Pruebas end-to-end, de navegador y de accesibilidad de ColdChain Sentinel",
+  "scripts": {
+    "test": "playwright test",
+    "report": "playwright show-report reports/html"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.10.1",
+    "@playwright/test": "1.49.1"
+  }
+}
