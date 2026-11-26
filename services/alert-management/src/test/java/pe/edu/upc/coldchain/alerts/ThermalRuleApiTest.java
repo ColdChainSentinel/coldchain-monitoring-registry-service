@@ -79,6 +79,14 @@ class ThermalRuleApiTest {
                         .content("{\"thresholdMin\":5,\"thresholdMax\":5}"))
                 .andExpect(status().isBadRequest());
 
+        for (String outOfRange : new String[] {"{\"thresholdMin\":-41,\"thresholdMax\":8}",
+                "{\"thresholdMin\":2,\"thresholdMax\":50.5}"}) {
+            mvc.perform(put("/api/alerts/rules/" + pointId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(outOfRange))
+                    .andExpect(status().isBadRequest());
+        }
+
         mvc.perform(post("/api/alerts/evaluate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""

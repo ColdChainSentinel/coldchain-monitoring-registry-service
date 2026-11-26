@@ -3,7 +3,13 @@ import { HttpError, errorMessage } from '../../api/http';
 import { FieldError, Notice } from '../../components/Feedback';
 import { Icon } from '../../components/Icon';
 import { localNow } from '../../lib/format';
-import { parseLocalTimestamp, parseTemperature } from '../../lib/validation';
+import {
+  parseLocalTimestamp,
+  parseTemperature,
+  TEMPERATURE_MAX,
+  TEMPERATURE_MIN,
+  TEMPERATURE_RANGE_TEXT,
+} from '../../lib/validation';
 import type { CreateMeasurement, Measurement, MonitoringPoint } from '../../types/domain';
 
 export function MeasurementForm({
@@ -53,7 +59,7 @@ export function MeasurementForm({
     <section className="card form-card" aria-labelledby="measurement-form-heading">
       <div className="card-heading">
         <div>
-          <span className="eyebrow">ENTRADA MANUAL · SIMULACIÓN IOT</span>
+          <span className="eyebrow">REGISTRO MANUAL</span>
           <h2 id="measurement-form-heading">Registrar medición</h2>
         </div>
         <Icon name="thermometer" />
@@ -81,6 +87,8 @@ export function MeasurementForm({
             type="text"
             inputMode="decimal"
             autoComplete="off"
+            maxLength={7}
+            placeholder={`${TEMPERATURE_MIN} a ${TEMPERATURE_MAX}`}
             value={temperature}
             required
             onChange={(e) => setTemperature(e.target.value)}
@@ -89,7 +97,7 @@ export function MeasurementForm({
             aria-describedby={`temperature-help${fields.temperature ? ' temperature-error' : ''}`}
           />
           <span className="field-help" id="temperature-help">
-            Se admiten valores negativos y cero. No hay límites universales predefinidos.
+            {TEMPERATURE_RANGE_TEXT}
           </span>
           <FieldError id="temperature-error" message={fields.temperature} />
         </div>

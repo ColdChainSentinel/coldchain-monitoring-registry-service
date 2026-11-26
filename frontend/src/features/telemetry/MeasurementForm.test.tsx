@@ -11,8 +11,17 @@ describe('entrada manual de mediciones', () => {
     fireEvent.change(screen.getByLabelText('Fecha y hora de medición'), { target: { value: '' } });
     await userEvent.click(screen.getByRole('button', { name: 'Guardar medición' }));
     expect(create).not.toHaveBeenCalled();
-    expect(screen.getByText(/Escribe una temperatura numérica/)).toBeInTheDocument();
+    expect(screen.getByText(/Escribe una temperatura válida/)).toBeInTheDocument();
     expect(screen.getByText(/Selecciona una fecha/)).toBeInTheDocument();
+  });
+  it('no envía temperaturas fuera del rango operativo', async () => {
+    const create = vi.fn();
+    render(<MeasurementForm point={point} onCreate={create} />);
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText('Temperatura (°C)'), '85');
+    await user.click(screen.getByRole('button', { name: 'Guardar medición' }));
+    expect(create).not.toHaveBeenCalled();
+    expect(screen.getByText(/debe estar entre -40 °C y 50 °C/)).toBeInTheDocument();
   });
   it('registra negativos, punto real y timestamp UTC, sin reintentar', async () => {
     const create = vi.fn().mockResolvedValue({ ...measurement, temperature: -3.75 });

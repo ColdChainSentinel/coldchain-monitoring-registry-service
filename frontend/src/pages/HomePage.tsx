@@ -123,7 +123,7 @@ export function HomePage({
     {
       label: 'Puntos registrados',
       value: count(points),
-      note: 'Catálogo de Monitoring Registry',
+      note: 'Catálogo de la organización',
       icon: 'point',
       tone: 'teal',
     },
@@ -144,7 +144,7 @@ export function HomePage({
     {
       label: 'Evaluaciones pendientes',
       value: pending,
-      note: 'PENDING almacenado en Telemetry',
+      note: 'Mediciones a la espera de evaluación',
       icon: 'clock',
       tone: 'amber',
     },
@@ -187,7 +187,7 @@ export function HomePage({
         <div className="sidebar-footer">
           <Icon name="snow" />
           <strong>Cadena de frío, datos claros.</strong>
-          <p>MVP académico · Agile Software Factories</p>
+          <p>Monitoreo térmico en almacenes y transporte</p>
         </div>
       </aside>
       <main id="contenido" className="workspace" tabIndex={-1}>
@@ -389,8 +389,7 @@ export function HomePage({
             )}
             <p className="page-note">
               <Icon name="info" />
-              Los indicadores cuentan únicamente registros devueltos por las APIs. Actualización manual; no
-              son métricas en tiempo real.
+              Los indicadores se calculan con los datos registrados. Usa «Actualizar datos» para ver la información más reciente.
             </p>
           </>
         )}
@@ -407,7 +406,7 @@ export function HomePage({
                   <Icon name="point" />
                 </div>
                 <p className="section-description">
-                  Selecciona un punto para consultar su historial. No hay edición ni eliminación en este MVP.
+                  Selecciona un punto para consultar sus dispositivos, mediciones y alertas.
                 </p>
                 {points.data !== null && (
                   <PointList points={points.data} selectedId={pointId} onSelect={setSelectedId} />
@@ -450,14 +449,13 @@ export function HomePage({
               )}
               <p className="page-note">
                 <Icon name="info" />
-                La evaluación almacenada y la alerta asociada son datos distintos. Un reintento externo puede
-                crear una alerta sin actualizar PENDING en Telemetry.
+                Cada medición se compara con el rango térmico del punto; si queda fuera, se genera una alerta automáticamente.
               </p>
             </>
           ) : (
             <section className="card">
               <EmptyState title="Selecciona o registra un punto" icon="point">
-                Necesitas un UUID real de Monitoring Registry para introducir una medición.
+                Elige un punto de monitoreo para registrar sus mediciones.
               </EmptyState>
             </section>
           ))}
@@ -467,7 +465,7 @@ export function HomePage({
             <>
               <ThermalRulePanel point={selectedPoint} />
               <Notice>
-                Los límites mostrados en la tabla son los snapshots guardados con cada alerta.
+                Cada alerta conserva los límites que estaban vigentes al detectarla.
               </Notice>
               <QueryCard
                 title="Historial de alertas"
@@ -479,8 +477,7 @@ export function HomePage({
               </QueryCard>
               {(pending || 0) > 0 && (
                 <Notice tone="warning">
-                  Telemetry informa {pending} evaluación(es) PENDING en este punto. Una lista sin alertas no
-                  equivale a NO_ALERT.
+                  Hay {pending} medición(es) pendiente(s) de evaluación en este punto. Revisa que el punto tenga un rango térmico configurado.
                 </Notice>
               )}
             </>
@@ -495,7 +492,7 @@ export function HomePage({
 
         <footer className="workspace-footer">
           <span>ColdChain Sentinel</span>
-          <span>MVP académico · Datos de APIs reales</span>
+          <span>Cadena de frío bajo control</span>
         </footer>
       </main>
     </div>

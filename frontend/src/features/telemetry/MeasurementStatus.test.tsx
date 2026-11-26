@@ -35,13 +35,13 @@ describe('evaluación y alertas son hechos distintos', () => {
     expect(screen.getByText('Alerta registrada')).toBeInTheDocument();
   });
   it.each(['COMPLETED', 'PENDING', 'RULE_NOT_CONFIGURED'] as const)(
-    'explica el resultado %s sin fingir NO_ALERT',
+    'explica el resultado %s sin presentarlo como ausencia de alerta',
     (status) => {
       render(<MeasurementReceipt measurement={{ ...measurement, evaluationStatus: status }} />);
       expect(screen.getByRole('status')).toBeInTheDocument();
       if (status === 'COMPLETED')
         expect(screen.getByText(/no la ausencia de una alerta/)).toBeInTheDocument();
-      if (status === 'PENDING') expect(screen.getByText(/no la vuelvas a enviar/)).toBeInTheDocument();
+      if (status === 'PENDING') expect(screen.getByText(/No es necesario volver a enviarla/)).toBeInTheDocument();
       if (status === 'RULE_NOT_CONFIGURED')
         expect(screen.getByText(/No se aplicaron límites por defecto/)).toBeInTheDocument();
     },

@@ -39,7 +39,7 @@ export function PointForm({ onCreate }: { onCreate: (input: CreatePoint) => Prom
     <section className="card form-card" aria-labelledby="point-form-heading">
       <div className="card-heading">
         <div>
-          <span className="eyebrow">MONITORING REGISTRY</span>
+          <span className="eyebrow">NUEVO PUNTO</span>
           <h2 id="point-form-heading">Registrar punto</h2>
         </div>
         <Icon name="plus" />

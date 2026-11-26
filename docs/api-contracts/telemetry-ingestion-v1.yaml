@@ -100,9 +100,10 @@ components:
         temperature:
           type: number
           description: >-
-            Número JSON finito Celsius (no string); BigDecimal/NUMERIC sin escala fija.
-            Hasta 131072 dígitos enteros y 16383 decimales significativos (capacidad de
-            PostgreSQL), sin redondeo ni límites térmicos universales.
+            Número JSON finito en °C (no string) dentro del rango operativo [-40, 50].
+            Se persiste como NUMERIC sin redondeo; fuera del rango responde 400.
+          minimum: -40
+          maximum: 50
           example: 3.75
         timestamp:
           type: string

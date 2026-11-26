@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { errorMessage, HttpError } from '../../api/http';
 import { Notice } from '../../components/Feedback';
 import { alertsApi } from '../../services/alerts';
+import { parseTemperature, TEMPERATURE_MAX, TEMPERATURE_MIN, TEMPERATURE_RANGE_TEXT } from '../../lib/validation';
 import type { MonitoringPoint, ThermalRule } from '../../types/domain';
 
 export function ThermalRulePanel({ point }: { point: MonitoringPoint }) {
@@ -35,9 +36,16 @@ export function ThermalRulePanel({ point }: { point: MonitoringPoint }) {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    const minVal = Number(min);
-    const maxVal = Number(max);
-    if (!Number.isFinite(minVal) || !Number.isFinite(maxVal) || minVal >= maxVal) {
+    let minVal: number;
+    let maxVal: number;
+    try {
+      minVal = parseTemperature(min);
+      maxVal = parseTemperature(max);
+    } catch (failure) {
+      setError((failure as Error).message);
+      return;
+    }
+    if (minVal >= maxVal) {
       setError('La temperatura mínima debe ser estrictamente menor que la máxima.');
       return;
     }
@@ -59,7 +67,7 @@ export function ThermalRulePanel({ point }: { point: MonitoringPoint }) {
     <section className="card" style={{ marginBottom: '1.25rem' }}>
       <div className="card-heading">
         <div>
-          <span className="eyebrow">HU-09 · RANGO TÉRMICO</span>
+          <span className="eyebrow">RANGO TÉRMICO</span>
           <h2>Configurar límites para {point.code}</h2>
         </div>
       </div>
@@ -81,7 +89,9 @@ export function ThermalRulePanel({ point }: { point: MonitoringPoint }) {
           <input
             id="rule-min"
             type="number"
-            step="any"
+            step="0.01"
+            min={TEMPERATURE_MIN}
+            max={TEMPERATURE_MAX}
             value={min}
             onChange={(e) => setMin(e.target.value)}
             disabled={saving}
@@ -93,13 +103,16 @@ export function ThermalRulePanel({ point }: { point: MonitoringPoint }) {
           <input
             id="rule-max"
             type="number"
-            step="any"
+            step="0.01"
+            min={TEMPERATURE_MIN}
+            max={TEMPERATURE_MAX}
             value={max}
             onChange={(e) => setMax(e.target.value)}
             disabled={saving}
             required
           />
         </div>
+        <p className="field-help">{TEMPERATURE_RANGE_TEXT}</p>
         <button className="button button--primary" type="submit" disabled={saving}>
           {saving ? 'Guardando…' : 'Guardar rango'}
         </button>

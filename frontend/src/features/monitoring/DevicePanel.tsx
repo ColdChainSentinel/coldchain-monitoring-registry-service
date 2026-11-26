@@ -39,7 +39,7 @@ export function DevicePanel({ point }: { point: MonitoringPoint }) {
     <section className="card" style={{ marginTop: '1.25rem' }}>
       <div className="card-heading">
         <div>
-          <span className="eyebrow">HU-06 · DISPOSITIVOS</span>
+          <span className="eyebrow">DISPOSITIVOS</span>
           <h2>Dispositivos asociados a {point.code}</h2>
         </div>
       </div>

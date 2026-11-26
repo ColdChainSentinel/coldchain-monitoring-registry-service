@@ -85,7 +85,7 @@ export function UserAdminSection({ points }: { points: MonitoringPoint[] }) {
       <section className="card data-card">
         <div className="card-heading">
           <div>
-            <span className="eyebrow">EP-01 · HU-02 / HU-03</span>
+            <span className="eyebrow">ADMINISTRACIÓN</span>
             <h2>Cuentas y permisos por punto</h2>
           </div>
         </div>

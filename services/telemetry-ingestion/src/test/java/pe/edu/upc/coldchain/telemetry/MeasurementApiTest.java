@@ -210,7 +210,8 @@ class MeasurementApiTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"null", "\"3.5\"", "true", "{}", "NaN", "Infinity", "1e131072", "1e-16384", "100e2147483647"})
+    @ValueSource(strings = {"null", "\"3.5\"", "true", "{}", "NaN", "Infinity", "1e131072", "1e-16384", "100e2147483647",
+            "-40.01", "50.01", "120", "-273.15"})
     void rejectsInvalidTemperatureWithoutPersisting(String temperature) {
         assertThat(post(valid(temperature, "2026-10-29T10:00:00Z")).getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertNoSideEffects();

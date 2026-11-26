@@ -1,7 +1,7 @@
 import { services, type Health } from '../api/services';
 import { useResource } from '../hooks/useResource';
 
-const names = { registry: 'Registry', telemetry: 'Telemetría', alerts: 'Alertas' };
+const names = { registry: 'Registro', telemetry: 'Telemetría', alerts: 'Alertas' };
 const loadHealth = (signal: AbortSignal) =>
   Promise.all(
     Object.entries(services).map(async ([name, client]) => {
@@ -17,7 +17,7 @@ const loadHealth = (signal: AbortSignal) =>
 export function ServiceHealth({ revision }: { revision: number }) {
   const health = useResource('health', loadHealth, revision);
   return (
-    <div className="service-health" aria-label="Última comprobación de salud de APIs">
+    <div className="service-health" aria-label="Estado de los servicios">
       {(Object.keys(names) as Array<keyof typeof names>).map((name) => {
         const checked = health.data?.find((item) => item.name === name);
         const status = health.loading ? 'Comprobando' : checked?.available ? 'Disponible' : 'No disponible';

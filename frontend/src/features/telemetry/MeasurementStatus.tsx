@@ -45,7 +45,7 @@ export function MeasurementReceipt({ measurement }: { measurement: Measurement }
         {status === 'COMPLETED'
           ? 'COMPLETED confirma la evaluación, no la ausencia de una alerta. Consulta las alertas asociadas.'
           : status === 'PENDING'
-            ? 'PENDING no significa NO_ALERT. La medición ya está guardada: no la vuelvas a enviar para reintentar su evaluación.'
+            ? 'La medición ya está guardada y se evaluará en cuanto el servicio de alertas esté disponible. No es necesario volver a enviarla.'
             : 'Un responsable debe configurar los límites de este punto fuera del frontend. No se aplicaron límites por defecto.'}
       </p>
       <span className="receipt-id">ID: {measurement.id}</span>
