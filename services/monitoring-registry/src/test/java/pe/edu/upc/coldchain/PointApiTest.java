@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import pe.edu.upc.coldchain.repository.DeviceRepository;
 import pe.edu.upc.coldchain.repository.PointRepository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -28,10 +29,13 @@ class PointApiTest {
     @Autowired
     private MockMvc mvc;
     @Autowired
+    private DeviceRepository deviceRepository;
+    @Autowired
     private PointRepository repository;
 
     @BeforeEach
     void cleanDatabase() {
+        deviceRepository.deleteAll();
         repository.deleteAll();
     }
 

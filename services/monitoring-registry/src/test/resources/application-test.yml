@@ -8,3 +8,6 @@ spring:
       ddl-auto: validate
   flyway:
     enabled: true
+coldchain:
+  auth:
+    enabled: false

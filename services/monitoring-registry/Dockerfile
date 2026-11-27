@@ -14,7 +14,7 @@ RUN mvn -B -ntp dependency:resolve
 
 # Copiar código fuente y construir el paquete ejecutable
 COPY src src
-RUN mvn -B -ntp clean package -DskipTests
+RUN mvn -B -ntp clean package -DskipTests -Djacoco.skip=true
 
 # ==========================================
 # Etapa 2: Entorno de ejecución ligero (Runner)

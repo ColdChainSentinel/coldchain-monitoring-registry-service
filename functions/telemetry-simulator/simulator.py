@@ -26,6 +26,9 @@ class Settings:
     temperature: float
     timeout: float
     dry_run: bool
+    identity_url: str = ""
+    username: str = ""
+    password: str = ""
 
     @classmethod
     def from_env(cls, env=None):
@@ -46,7 +49,24 @@ class Settings:
         dry_run = env.get("SIMULATOR_DRY_RUN", "true").lower()
         if dry_run not in {"true", "false"}:
             raise ValueError("SIMULATOR_DRY_RUN debe ser true o false")
-        return cls(base_url, point_id, temperature, timeout, dry_run == "true")
+        identity_url = env.get("IDENTITY_BASE_URL", "").rstrip("/")
+        username = env.get("SIMULATOR_USERNAME", "")
+        password = env.get("SIMULATOR_PASSWORD", "")
+        return cls(base_url, point_id, temperature, timeout, dry_run == "true", identity_url, username, password)
+
+
+def _fetch_token(settings, sender):
+    if not settings.identity_url or not settings.username or not settings.password:
+        return None
+    login_req = Request(
+        settings.identity_url + "/api/v1/auth/login",
+        data=json.dumps({"username": settings.username, "password": settings.password}).encode("utf-8"),
+        headers={"Content-Type": "application/json", "Accept": "application/json"},
+        method="POST",
+    )
+    with sender.open(login_req, timeout=settings.timeout) as resp:
+        data = json.load(resp)
+        return data.get("token")
 
 
 def run_once(settings, *, now=None, opener=None):
@@ -63,12 +83,17 @@ def run_once(settings, *, now=None, opener=None):
                      payload["monitoringPointId"], payload["temperature"], payload["timestamp"])
         return {"mode": "DRY_RUN", "payload": payload}
 
+    sender = opener or build_opener(NoRedirect())
+    headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    token = _fetch_token(settings, sender)
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
     request = Request(settings.base_url + "/api/measurements",
                       data=json.dumps(payload, allow_nan=False).encode("utf-8"),
-                      headers={"Content-Type": "application/json", "Accept": "application/json"},
+                      headers=headers,
                       method="POST")
     # Un único intento: la ingesta todavía no tiene clave de idempotencia.
-    sender = opener or build_opener(NoRedirect())
     try:
         with sender.open(request, timeout=settings.timeout) as response:
             if response.status != 201:

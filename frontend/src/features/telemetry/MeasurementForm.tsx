@@ -31,6 +31,9 @@ export function MeasurementForm({
     }
     try {
       instant = parseLocalTimestamp(timestamp);
+      if (Date.parse(instant) > Date.now()) {
+        invalid.timestamp = 'No se admiten fechas futuras para la medición.';
+      }
     } catch (failure) {
       invalid.timestamp = (failure as Error).message;
     }
@@ -100,6 +103,7 @@ export function MeasurementForm({
             name="timestamp"
             type="datetime-local"
             step="1"
+            max={localNow()}
             value={timestamp}
             required
             onChange={(e) => setTimestamp(e.target.value)}

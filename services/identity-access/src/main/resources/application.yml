@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: identity-access
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/coldchain_identity}
+    username: ${DB_USER:coldchain}
+    password: ${DB_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+server:
+  port: ${PORT:8083}
+  error:
+    include-message: never
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+coldchain:
+  identity:
+    session-ttl: ${SESSION_TTL:PT12H}
+    bootstrap-admin:
+      username: ${BOOTSTRAP_ADMIN_USERNAME:}
+      password: ${BOOTSTRAP_ADMIN_PASSWORD:}
+      full-name: ${BOOTSTRAP_ADMIN_FULL_NAME:Administrador ColdChain}
