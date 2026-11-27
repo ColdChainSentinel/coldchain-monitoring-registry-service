@@ -46,6 +46,17 @@ describe('entrada manual de mediciones', () => {
     finish(measurement);
     await waitFor(() => expect(screen.getByRole('button', { name: 'Guardar medición' })).toBeEnabled());
   });
+  it('rechaza fechas futuras en la entrada manual', async () => {
+    const create = vi.fn();
+    render(<MeasurementForm point={point} onCreate={create} />);
+    await userEvent.type(screen.getByLabelText('Temperatura (°C)'), '5');
+    fireEvent.change(screen.getByLabelText('Fecha y hora de medición'), {
+      target: { value: '2099-01-01T10:00' },
+    });
+    await userEvent.click(screen.getByRole('button', { name: 'Guardar medición' }));
+    expect(create).not.toHaveBeenCalled();
+    expect(screen.getByText(/No se admiten fechas futuras/)).toBeInTheDocument();
+  });
   it('un fallo de red no muestra éxito ni reenvía la medición', async () => {
     const create = vi.fn().mockRejectedValue(new TypeError('Network error'));
     render(<MeasurementForm point={point} onCreate={create} />);

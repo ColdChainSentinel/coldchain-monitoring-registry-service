@@ -21,6 +21,11 @@ public class ApiExceptionHandler {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
     }
 
+    @ExceptionHandler(ForbiddenAccessException.class)
+    public ProblemDetail forbidden(ForbiddenAccessException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, exception.getMessage());
+    }
+
     @ExceptionHandler(RegistryUnavailableException.class)
     public ProblemDetail registryUnavailable(RegistryUnavailableException exception) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, exception.getMessage());

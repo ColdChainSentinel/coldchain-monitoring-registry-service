@@ -1,6 +1,9 @@
 terraform {
   required_version = ">= 1.9"
 
+  # Settings live in backend.hcl (see backend.hcl.example and README).
+  backend "azurerm" {}
+
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"

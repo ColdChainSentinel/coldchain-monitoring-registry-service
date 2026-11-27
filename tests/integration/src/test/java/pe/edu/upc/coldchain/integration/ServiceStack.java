@@ -30,12 +30,15 @@ final class ServiceStack implements AutoCloseable {
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
     private final String password = UUID.randomUUID().toString();
     private PostgreSQLContainer postgres;
+    private Process identity;
     private Process registry;
     private Process telemetry;
     private Process alerts;
+    private int identityPort;
     private int registryPort;
     private int telemetryPort;
     private int alertsPort;
+    private String authToken;
     private final Map<String, BigDecimal[]> rules = new LinkedHashMap<>();
     private Map<String, BigDecimal[]> initialRules;
     String point;
@@ -50,6 +53,7 @@ final class ServiceStack implements AutoCloseable {
         validateBuild("monitoring-registry", "monitoring-management", "pe.edu.upc.coldchain.MonitoringApplication");
         validateBuild("telemetry-ingestion", "telemetry-ingestion", "pe.edu.upc.coldchain.telemetry.TelemetryApplication");
         validateBuild("alert-management", "alert-management", "pe.edu.upc.coldchain.alerts.AlertsApplication");
+        validateBuild("identity-access", "identity-access", "pe.edu.upc.coldchain.identity.IdentityApplication");
         Runtime.getRuntime().addShutdownHook(new Thread(this::close, "acceptance-stack-cleanup"));
         try {
             if (mode.equals("postgres")) {
@@ -58,13 +62,23 @@ final class ServiceStack implements AutoCloseable {
                 postgres.start();
                 try (var connection = DriverManager.getConnection(postgres.getJdbcUrl(), "test_admin", password);
                         var statement = connection.createStatement()) {
-                    for (String name : List.of("registry", "telemetry", "alerts")) {
+                    for (String name : List.of("registry", "telemetry", "alerts", "identity")) {
                         statement.execute("CREATE ROLE " + name + " LOGIN PASSWORD '" + password + "'");
                         statement.execute("CREATE DATABASE " + name + " OWNER " + name);
                         statement.execute("REVOKE CONNECT ON DATABASE " + name + " FROM PUBLIC");
                     }
                 }
             }
+            identityPort = freePort();
+            identity = launch("identity-access", "identity-access", "identity", identityPort,
+                    "pe.edu.upc.coldchain.identity.IdentityApplication");
+            awaitHealthy(identity, identityPort, "identity");
+            Reply login = request(identityPort, "POST", "/api/v1/auth/login",
+                    Map.of("username", "it-admin", "password", password));
+            if (login.status() != 200) {
+                throw new IllegalStateException("No se pudo autenticar en identity-access: " + login);
+            }
+            authToken = login.body().path("token").asText();
             registryPort = freePort();
             startRegistry();
             point = createPoint("IT-RULE");
@@ -124,6 +138,11 @@ final class ServiceStack implements AutoCloseable {
         env.put("DB_PASSWORD", mode.equals("postgres") ? password : "");
         env.put("REGISTRY_BASE_URL", "http://127.0.0.1:" + registryPort);
         env.put("ALERTS_BASE_URL", "http://127.0.0.1:" + alertsPort);
+        env.put("IDENTITY_BASE_URL", "http://127.0.0.1:" + identityPort);
+        if (database.equals("identity")) {
+            env.put("BOOTSTRAP_ADMIN_USERNAME", "it-admin");
+            env.put("BOOTSTRAP_ADMIN_PASSWORD", password);
+        }
         if (database.equals("alerts")) {
             env.put("SPRING_CONFIG_ADDITIONAL_LOCATION", output.resolve("rules.yml").toUri().toString());
         }
@@ -181,6 +200,9 @@ final class ServiceStack implements AutoCloseable {
 
     private Reply request(int port, String method, String path, Object body) throws Exception {
         var builder = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + path)).timeout(Duration.ofSeconds(10));
+        if (authToken != null && !path.startsWith("/actuator/") && !path.equals("/api/v1/auth/login")) {
+            builder.header("Authorization", "Bearer " + authToken);
+        }
         if (body == null) {
             builder.method(method, HttpRequest.BodyPublishers.noBody());
         } else {
@@ -261,6 +283,7 @@ final class ServiceStack implements AutoCloseable {
         stop(telemetry);
         stop(alerts);
         stop(registry);
+        stop(identity);
         if (postgres != null && postgres.isRunning()) {
             postgres.close();
         }

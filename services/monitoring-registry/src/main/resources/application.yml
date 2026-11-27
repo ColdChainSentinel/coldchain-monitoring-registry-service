@@ -23,3 +23,7 @@ management:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+coldchain:
+  auth:
+    enabled: ${AUTH_ENABLED:true}
+    identity-base-url: ${IDENTITY_BASE_URL:http://localhost:8083}

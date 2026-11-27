@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:identity_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+  flyway:
+    enabled: true
+coldchain:
+  identity:
+    bootstrap-admin:
+      username: admin
+      password: AdminTestPassword123
+      full-name: Administrador Test

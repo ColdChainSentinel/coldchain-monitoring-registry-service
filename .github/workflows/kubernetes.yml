@@ -1,0 +1,59 @@
+name: ColdChain Kubernetes
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  manifests:
+    name: Render Kubernetes manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-kubectl@v4
+        with:
+          version: v1.36.1
+      - name: Render and save local/cloud overlays
+        run: |
+          mkdir -p rendered
+          kubectl kustomize infrastructure/kubernetes/overlays/local > rendered/local.yaml
+          kubectl kustomize infrastructure/kubernetes/overlays/cloud > rendered/cloud-template.yaml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kubernetes-manifests
+          path: rendered/
+          if-no-files-found: error
+
+  publish:
+    name: Build and publish images by commit SHA
+    needs: manifests
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build images
+        run: |
+          services=(identity-access monitoring-registry telemetry-ingestion alert-management frontend)
+          for service in "${services[@]}"; do
+            context="services/$service"
+            if [ "$service" = frontend ]; then context=frontend; fi
+            docker build --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+              -t "ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/$service:$GITHUB_SHA" "$context"
+          done
+      - name: Publish to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          for service in identity-access monitoring-registry telemetry-ingestion alert-management frontend; do
+            docker push "ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/$service:$GITHUB_SHA"
+          done
