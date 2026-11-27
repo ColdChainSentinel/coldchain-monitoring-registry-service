@@ -314,9 +314,10 @@ resource "azurerm_container_app" "frontend" {
         value = local.internal_url["identity-access"]
       }
 
+      # The unprivileged nginx image listens on 8080, like the ingress target.
       liveness_probe {
         transport = "HTTP"
-        port      = 80
+        port      = 8080
         path      = "/"
       }
     }
