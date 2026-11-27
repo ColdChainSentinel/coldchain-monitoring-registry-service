@@ -52,7 +52,7 @@ export function App() {
   if (checking) {
     return (
       <div className="workspace" style={{ maxWidth: 460, margin: '4rem auto' }}>
-        <section className="card">
+        <section className="card form-card">
           <p>Verificando sesión…</p>
         </section>
       </div>

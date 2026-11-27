@@ -19,6 +19,9 @@ import pe.edu.upc.coldchain.repository.DeviceRepository;
 import pe.edu.upc.coldchain.repository.PointRepository;
 import pe.edu.upc.coldchain.security.AuthContext;
 import pe.edu.upc.coldchain.security.IdentityClient;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -87,7 +90,7 @@ class PointAuthSecurityTest {
     }
 
     @Test
-    void rejectsPointCreationForConductorRole() throws Exception {
+    void rejectsPointCreationForConductorAndGrantsAccessToSupervisorCreator() throws Exception {
         AuthContext driver = new AuthContext(UUID.randomUUID(), "conductor01", "CONDUCTOR", Set.of(pointA));
         when(identityClient.introspect("Bearer driver-token"))
                 .thenReturn(new IdentityClient.IntrospectionResult(200, driver));
@@ -97,5 +100,18 @@ class PointAuthSecurityTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"code\":\"ALM-03\",\"name\":\"Almacen 3\",\"type\":\"ALMACENAMIENTO\"}"))
                 .andExpect(status().isForbidden());
+
+        AuthContext supervisor = new AuthContext(UUID.randomUUID(), "supervisor01", "SUPERVISOR", Set.of(pointA));
+        when(identityClient.introspect("Bearer sup-token"))
+                .thenReturn(new IdentityClient.IntrospectionResult(200, supervisor));
+
+        mvc.perform(post("/api/v1/monitoring-points")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer sup-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"code\":\"ALM-04\",\"name\":\"Almacen 4\",\"type\":\"ALMACENAMIENTO\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.code").value("ALM-04"));
+
+        verify(identityClient).grantPointAccess(eq("Bearer sup-token"), any(UUID.class));
     }
 }

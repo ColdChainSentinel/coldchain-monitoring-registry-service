@@ -5,7 +5,13 @@ import { useResource } from '../../hooks/useResource';
 import { monitoringApi } from '../../services/monitoring';
 import type { MonitoringPoint } from '../../types/domain';
 
-export function DevicePanel({ point }: { point: MonitoringPoint }) {
+export function DevicePanel({
+  point,
+  readOnly = false,
+}: {
+  point: MonitoringPoint;
+  readOnly?: boolean;
+}) {
   const [revision, setRevision] = useState(0);
   const loadDevices = useCallback(
     (signal: AbortSignal) => monitoringApi.listDevices(point.id, signal),
@@ -36,7 +42,7 @@ export function DevicePanel({ point }: { point: MonitoringPoint }) {
   }
 
   return (
-    <section className="card" style={{ marginTop: '1.25rem' }}>
+    <section className="card form-card" style={{ marginTop: '1.25rem' }}>
       <div className="card-heading">
         <div>
           <span className="eyebrow">HU-06 · DISPOSITIVOS</span>
@@ -57,22 +63,24 @@ export function DevicePanel({ point }: { point: MonitoringPoint }) {
             : devices.data.map((d) => `${d.code} (${d.status})`).join(' · ')}
         </p>
       )}
-      <form className="form-grid" onSubmit={handleSubmit} style={{ marginTop: '0.75rem' }}>
-        <div className="field">
-          <label htmlFor="device-code">Identificador de dispositivo</label>
-          <input
-            id="device-code"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="ej. SEN-01"
-            disabled={saving}
-            required
-          />
-        </div>
-        <button className="button button--primary" type="submit" disabled={saving}>
-          {saving ? 'Registrando…' : 'Registrar dispositivo'}
-        </button>
-      </form>
+      {!readOnly && (
+        <form className="form-grid" onSubmit={handleSubmit} style={{ marginTop: '0.75rem' }}>
+          <div className="field">
+            <label htmlFor="device-code">Identificador de dispositivo</label>
+            <input
+              id="device-code"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="ej. SEN-01"
+              disabled={saving}
+              required
+            />
+          </div>
+          <button className="button button--primary" type="submit" disabled={saving}>
+            {saving ? 'Registrando…' : 'Registrar dispositivo'}
+          </button>
+        </form>
+      )}
     </section>
   );
 }

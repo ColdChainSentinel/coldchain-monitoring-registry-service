@@ -51,7 +51,7 @@ spec:
             - name: IDENTITY_BASE_URL
               value: "http://identity-access:8083"
             - name: SPRING_CONFIG_ADDITIONAL_LOCATION
-              value: "file:/app/config/thermal-rules.yaml"
+              value: "optional:file:/app/config/thermal-rules.yaml"
           envFrom:
             - secretRef:
                 name: alert-management-db
@@ -96,3 +96,4 @@ spec:
         - name: thermal-rules
           configMap:
             name: coldchain-thermal-rules
+            optional: true

@@ -4,7 +4,13 @@ import { Notice } from '../../components/Feedback';
 import { alertsApi } from '../../services/alerts';
 import type { MonitoringPoint, ThermalRule } from '../../types/domain';
 
-export function ThermalRulePanel({ point }: { point: MonitoringPoint }) {
+export function ThermalRulePanel({
+  point,
+  readOnly = false,
+}: {
+  point: MonitoringPoint;
+  readOnly?: boolean;
+}) {
   const [rule, setRule] = useState<ThermalRule | null>(null);
   const [min, setMin] = useState('');
   const [max, setMax] = useState('');
@@ -25,10 +31,13 @@ export function ThermalRulePanel({ point }: { point: MonitoringPoint }) {
         setMax(String(found.thresholdMax));
       })
       .catch((err) => {
+        if (controller.signal.aborted) return;
         if (err instanceof HttpError && err.status === 404) {
           setMin('');
           setMax('');
+          return;
         }
+        setError(errorMessage(err));
       });
     return () => controller.abort();
   }, [point.id]);
@@ -56,7 +65,7 @@ export function ThermalRulePanel({ point }: { point: MonitoringPoint }) {
   }
 
   return (
-    <section className="card" style={{ marginBottom: '1.25rem' }}>
+    <section className="card form-card" style={{ marginBottom: '1.25rem' }}>
       <div className="card-heading">
         <div>
           <span className="eyebrow">HU-09 · RANGO TÉRMICO</span>
@@ -75,35 +84,37 @@ export function ThermalRulePanel({ point }: { point: MonitoringPoint }) {
           {error}
         </Notice>
       )}
-      <form className="form-grid" onSubmit={handleSubmit}>
-        <div className="field">
-          <label htmlFor="rule-min">Mínima (°C)</label>
-          <input
-            id="rule-min"
-            type="number"
-            step="any"
-            value={min}
-            onChange={(e) => setMin(e.target.value)}
-            disabled={saving}
-            required
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="rule-max">Máxima (°C)</label>
-          <input
-            id="rule-max"
-            type="number"
-            step="any"
-            value={max}
-            onChange={(e) => setMax(e.target.value)}
-            disabled={saving}
-            required
-          />
-        </div>
-        <button className="button button--primary" type="submit" disabled={saving}>
-          {saving ? 'Guardando…' : 'Guardar rango'}
-        </button>
-      </form>
+      {!readOnly && (
+        <form className="form-grid" onSubmit={handleSubmit}>
+          <div className="field">
+            <label htmlFor="rule-min">Mínima (°C)</label>
+            <input
+              id="rule-min"
+              type="number"
+              step="any"
+              value={min}
+              onChange={(e) => setMin(e.target.value)}
+              disabled={saving}
+              required
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="rule-max">Máxima (°C)</label>
+            <input
+              id="rule-max"
+              type="number"
+              step="any"
+              value={max}
+              onChange={(e) => setMax(e.target.value)}
+              disabled={saving}
+              required
+            />
+          </div>
+          <button className="button button--primary" type="submit" disabled={saving}>
+            {saving ? 'Guardando…' : 'Guardar rango'}
+          </button>
+        </form>
+      )}
     </section>
   );
 }

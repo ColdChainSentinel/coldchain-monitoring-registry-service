@@ -1,6 +1,7 @@
 package pe.edu.upc.coldchain.security;
 
 import java.util.Set;
+import java.util.UUID;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -42,6 +43,21 @@ public class IdentityClient {
             return new IntrospectionResult(403, null);
         } catch (RestClientException ex) {
             return new IntrospectionResult(503, null);
+        }
+    }
+
+    public void grantPointAccess(String authorizationHeader, UUID monitoringPointId) {
+        if (authorizationHeader == null || authorizationHeader.isBlank()) {
+            return;
+        }
+        try {
+            http.post()
+                    .uri("/api/v1/auth/me/points/{id}", monitoringPointId)
+                    .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (RestClientException ignored) {
+            // Point creation already succeeded; permissions can still be managed by an admin.
         }
     }
 

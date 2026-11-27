@@ -98,6 +98,20 @@ public class IdentityService {
                 Set.copyOf(user.getAllowedPointIds()));
     }
 
+    @Transactional
+    public void grantPointAccess(String bearerHeader, UUID monitoringPointId) {
+        String token = extractBearerToken(bearerHeader);
+        UserSession session = findValidSession(token);
+        UserAccount user = session.getUser();
+        if (user.getRole() == Role.CONDUCTOR) {
+            throw new ForbiddenAccessException();
+        }
+        if (user.getRole() != Role.ADMIN) {
+            user.getAllowedPointIds().add(monitoringPointId);
+            userRepository.save(user);
+        }
+    }
+
     @Transactional(readOnly = true)
     public UserAccount requireAdmin(String bearerHeader) {
         String token = extractBearerToken(bearerHeader);
@@ -140,7 +154,10 @@ public class IdentityService {
     }
 
     @Transactional
-    public UserResponse updateStatus(UUID id, boolean active) {
+    public UserResponse updateStatus(UUID id, boolean active, UUID actingAdminId) {
+        if (!active && id.equals(actingAdminId)) {
+            throw new IllegalArgumentException("No puedes desactivar tu propia cuenta de administrador");
+        }
         UserAccount user = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
         user.setActive(active);
         UserAccount saved = userRepository.save(user);
@@ -155,7 +172,10 @@ public class IdentityService {
     }
 
     @Transactional
-    public UserResponse updatePermissions(UUID id, UpdatePermissionsRequest request) {
+    public UserResponse updatePermissions(UUID id, UpdatePermissionsRequest request, UUID actingAdminId) {
+        if (id.equals(actingAdminId) && request.role() != null && request.role() != Role.ADMIN) {
+            throw new IllegalArgumentException("No puedes cambiar el rol de tu propia cuenta de administrador");
+        }
         UserAccount user = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
         if (request.role() != null) {
             user.setRole(request.role());

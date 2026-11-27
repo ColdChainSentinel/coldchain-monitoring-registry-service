@@ -96,6 +96,8 @@ export function HomePage({
   const latest = !measurements.loading && !measurements.error ? measurements.data?.at(-1) : null;
   const refresh = () => setRevision((value) => value + 1);
   const refreshing = points.loading || measurements.loading || alerts.loading;
+  const isConductor = session?.role === 'CONDUCTOR';
+  const canCreatePoints = !session || !isConductor;
 
   useEffect(() => {
     document.title = `${sections[section].label} · ColdChain Sentinel`;
@@ -378,12 +380,14 @@ export function HomePage({
                   <EmptyState title="Tu primer punto, el inicio del monitoreo" icon="point">
                     Registra un punto para habilitar las mediciones y consultar sus alertas.
                   </EmptyState>
-                  <div className="empty-action">
-                    <button className="button button--primary" onClick={() => setSection('monitoring')}>
-                      <Icon name="plus" />
-                      Registrar primer punto
-                    </button>
-                  </div>
+                  {canCreatePoints && (
+                    <div className="empty-action">
+                      <button className="button button--primary" onClick={() => setSection('monitoring')}>
+                        <Icon name="plus" />
+                        Registrar primer punto
+                      </button>
+                    </div>
+                  )}
                 </section>
               )
             )}
@@ -413,9 +417,9 @@ export function HomePage({
                   <PointList points={points.data} selectedId={pointId} onSelect={setSelectedId} />
                 )}
               </section>
-              <PointForm onCreate={createPoint} />
+              {canCreatePoints && <PointForm onCreate={createPoint} />}
             </div>
-            {selectedPoint && <DevicePanel point={selectedPoint} />}
+            {selectedPoint && <DevicePanel point={selectedPoint} readOnly={isConductor} />}
           </>
         )}
 
@@ -465,7 +469,7 @@ export function HomePage({
         {section === 'alerts' &&
           (selectedPoint ? (
             <>
-              <ThermalRulePanel point={selectedPoint} />
+              <ThermalRulePanel point={selectedPoint} readOnly={isConductor} />
               <Notice>
                 Los límites mostrados en la tabla son los snapshots guardados con cada alerta.
               </Notice>
@@ -491,7 +495,9 @@ export function HomePage({
               </EmptyState>
             </section>
           ))}
-        {section === 'users' && session?.role === 'ADMIN' && <UserAdminSection points={pointList} />}
+        {section === 'users' && session?.role === 'ADMIN' && (
+          <UserAdminSection points={pointList} currentUserId={session.userId} />
+        )}
 
         <footer className="workspace-footer">
           <span>ColdChain Sentinel</span>

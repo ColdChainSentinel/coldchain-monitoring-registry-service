@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.UUID;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +19,7 @@ import pe.edu.upc.coldchain.dto.CreatePointRequest;
 import pe.edu.upc.coldchain.dto.PointResponse;
 import pe.edu.upc.coldchain.exception.ForbiddenAccessException;
 import pe.edu.upc.coldchain.security.AuthContext;
+import pe.edu.upc.coldchain.security.IdentityClient;
 import pe.edu.upc.coldchain.security.SessionAuthFilter;
 import pe.edu.upc.coldchain.service.PointService;
 
@@ -24,9 +27,11 @@ import pe.edu.upc.coldchain.service.PointService;
 @RequestMapping("/api/v1/monitoring-points")
 public class PointController {
     private final PointService service;
+    private final ObjectProvider<IdentityClient> identityClientProvider;
 
-    public PointController(PointService service) {
+    public PointController(PointService service, ObjectProvider<IdentityClient> identityClientProvider) {
         this.service = service;
+        this.identityClientProvider = identityClientProvider;
     }
 
     @PostMapping
@@ -38,6 +43,12 @@ public class PointController {
             throw new ForbiddenAccessException();
         }
         PointResponse response = service.create(request);
+        if (auth != null && !auth.isAdmin()) {
+            IdentityClient client = identityClientProvider.getIfAvailable();
+            if (client != null) {
+                client.grantPointAccess(httpRequest.getHeader(HttpHeaders.AUTHORIZATION), response.id());
+            }
+        }
         return ResponseEntity.created(URI.create("/api/v1/monitoring-points/" + response.id())).body(response);
     }
 

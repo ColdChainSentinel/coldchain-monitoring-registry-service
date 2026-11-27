@@ -64,8 +64,8 @@ public class UserController {
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization,
             @PathVariable UUID id,
             @Valid @RequestBody UpdateStatusRequest request) {
-        service.requireAdmin(authorization);
-        return service.updateStatus(id, request.active());
+        UUID actingAdminId = service.requireAdmin(authorization).getId();
+        return service.updateStatus(id, request.active(), actingAdminId);
     }
 
     @PutMapping("/{id}/permissions")
@@ -74,7 +74,7 @@ public class UserController {
             @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization,
             @PathVariable UUID id,
             @Valid @RequestBody UpdatePermissionsRequest request) {
-        service.requireAdmin(authorization);
-        return service.updatePermissions(id, request);
+        UUID actingAdminId = service.requireAdmin(authorization).getId();
+        return service.updatePermissions(id, request, actingAdminId);
     }
 }

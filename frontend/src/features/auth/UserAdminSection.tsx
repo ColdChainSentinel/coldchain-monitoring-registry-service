@@ -7,7 +7,13 @@ import type { MonitoringPoint, Role, UserAccount } from '../../types/domain';
 
 const ROLES: Role[] = ['ADMIN', 'SUPERVISOR', 'OPERADOR', 'CONDUCTOR'];
 
-export function UserAdminSection({ points }: { points: MonitoringPoint[] }) {
+export function UserAdminSection({
+  points,
+  currentUserId,
+}: {
+  points: MonitoringPoint[];
+  currentUserId?: string;
+}) {
   const [revision, setRevision] = useState(0);
   const loadUsers = useCallback((signal: AbortSignal) => identityApi.listUsers(signal), []);
   const users = useResource('users', loadUsers, revision);
@@ -80,6 +86,21 @@ export function UserAdminSection({ points }: { points: MonitoringPoint[] }) {
     }
   }
 
+  async function handleChangeUserRole(user: UserAccount, nextRole: Role) {
+    setError(null);
+    setFeedback(null);
+    try {
+      await identityApi.updatePermissions(user.id, {
+        role: nextRole,
+        allowedPointIds: nextRole === 'ADMIN' ? [] : user.allowedPointIds,
+      });
+      setFeedback(`Rol actualizado a ${nextRole} para ${user.username}.`);
+      setRevision((v) => v + 1);
+    } catch (err) {
+      setError(errorMessage(err));
+    }
+  }
+
   return (
     <div className="feature-grid">
       <section className="card data-card">
@@ -93,45 +114,69 @@ export function UserAdminSection({ points }: { points: MonitoringPoint[] }) {
         {error && <Notice tone="warning">{error}</Notice>}
         <ResourceFeedback resource={users} onRetry={users.reload} />
         {users.data && (
-          <div style={{ display: 'grid', gap: '1rem' }}>
-            {users.data.map((user) => (
-              <article key={user.id} className="card" style={{ padding: '1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
-                  <div>
-                    <strong>{user.username}</strong> · {user.fullName}
-                    <div className="section-description">
-                      Rol: <strong>{user.role}</strong> · Estado: {user.active ? 'Activo' : 'Inactivo'}
+          <div style={{ display: 'grid', gap: '1rem', padding: '0 23px 23px' }}>
+            {users.data.map((user) => {
+              const isSelf = Boolean(currentUserId && user.id === currentUserId);
+              return (
+                <article key={user.id} className="card" style={{ padding: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
+                    <div>
+                      <strong>{user.username}</strong> · {user.fullName}
+                      {isSelf && <span className="section-description"> (tu cuenta)</span>}
+                      <div className="section-description">
+                        Estado: {user.active ? 'Activo' : 'Inactivo'}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <label className="sr-only" htmlFor={`role-${user.id}`}>
+                        Rol de {user.username}
+                      </label>
+                      <select
+                        id={`role-${user.id}`}
+                        value={user.role}
+                        disabled={isSelf}
+                        title={isSelf ? 'No puedes cambiar tu propio rol de administrador' : 'Cambiar rol'}
+                        onChange={(e) => handleChangeUserRole(user, e.target.value as Role)}
+                      >
+                        {ROLES.map((item) => (
+                          <option key={item} value={item}>
+                            {item}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        className="button button--secondary"
+                        disabled={isSelf}
+                        title={isSelf ? 'No puedes desactivar tu propia cuenta' : undefined}
+                        onClick={() => handleToggleStatus(user)}
+                      >
+                        {user.active ? 'Desactivar' : 'Activar'}
+                      </button>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    className="button button--secondary"
-                    onClick={() => handleToggleStatus(user)}
-                  >
-                    {user.active ? 'Desactivar' : 'Activar'}
-                  </button>
-                </div>
-                {user.role !== 'ADMIN' && points.length > 0 && (
-                  <div style={{ marginTop: '0.75rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                    {points.map((pt) => (
-                      <label key={pt.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <input
-                          type="checkbox"
-                          checked={user.allowedPointIds.includes(pt.id)}
-                          onChange={() => handleToggleUserPoint(user, pt.id)}
-                        />
-                        <span>{pt.code}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </article>
-            ))}
+                  {user.role !== 'ADMIN' && points.length > 0 && (
+                    <div style={{ marginTop: '0.75rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      {points.map((pt) => (
+                        <label key={pt.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <input
+                            type="checkbox"
+                            checked={user.allowedPointIds.includes(pt.id)}
+                            onChange={() => handleToggleUserPoint(user, pt.id)}
+                          />
+                          <span>{pt.code}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </article>
+              );
+            })}
           </div>
         )}
       </section>
 
-      <section className="card">
+      <section className="card form-card">
         <div className="card-heading">
           <div>
             <span className="eyebrow">NUEVA CUENTA</span>

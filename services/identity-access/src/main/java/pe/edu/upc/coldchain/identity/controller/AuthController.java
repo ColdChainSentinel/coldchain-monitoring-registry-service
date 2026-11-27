@@ -54,4 +54,13 @@ public class AuthController {
             @RequestParam(required = false) UUID monitoringPointId) {
         return service.introspect(authorization, monitoringPointId);
     }
+
+    @PostMapping("/me/points/{monitoringPointId}")
+    @Operation(summary = "Asociar al usuario autenticado un punto recién creado (HU-04)")
+    public ResponseEntity<Void> grantPointAccess(
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization,
+            @org.springframework.web.bind.annotation.PathVariable UUID monitoringPointId) {
+        service.grantPointAccess(authorization, monitoringPointId);
+        return ResponseEntity.noContent().build();
+    }
 }

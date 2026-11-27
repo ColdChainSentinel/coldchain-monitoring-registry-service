@@ -1,7 +1,7 @@
 import { services, type Health } from '../api/services';
 import { useResource } from '../hooks/useResource';
 
-const names = { registry: 'Registry', telemetry: 'Telemetría', alerts: 'Alertas' };
+const names = { identity: 'Identidad', registry: 'Registry', telemetry: 'Telemetría', alerts: 'Alertas' };
 const loadHealth = (signal: AbortSignal) =>
   Promise.all(
     Object.entries(services).map(async ([name, client]) => {

@@ -169,6 +169,61 @@ class IdentityApiTest {
     }
 
     @Test
+    void adminCannotDeactivateOrDemoteOwnAccount() throws Exception {
+        String adminToken = loginAs("admin", "AdminTestPassword123");
+        String meJson = mvc.perform(get("/api/v1/auth/me")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String adminId = JSON.readTree(meJson).get("userId").asText();
+
+        mvc.perform(patch("/api/v1/users/" + adminId + "/status")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"active\": false}"))
+                .andExpect(status().isBadRequest());
+
+        mvc.perform(put("/api/v1/users/" + adminId + "/permissions")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"role\":\"OPERADOR\",\"allowedPointIds\":[]}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void supervisorCanGrantOwnAccessToCreatedPointWhileConductorIsRejected() throws Exception {
+        String adminToken = loginAs("admin", "AdminTestPassword123");
+        UUID newPoint = UUID.randomUUID();
+
+        mvc.perform(post("/api/v1/users")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"sup01\",\"password\":\"SuperPass123\",\"fullName\":\"Sup Uno\",\"role\":\"SUPERVISOR\",\"allowedPointIds\":[]}"))
+                .andExpect(status().isCreated());
+        mvc.perform(post("/api/v1/users")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"cond01\",\"password\":\"DriverPass123\",\"fullName\":\"Cond Uno\",\"role\":\"CONDUCTOR\",\"allowedPointIds\":[]}"))
+                .andExpect(status().isCreated());
+
+        String supToken = loginAs("sup01", "SuperPass123");
+        String condToken = loginAs("cond01", "DriverPass123");
+
+        mvc.perform(post("/api/v1/auth/me/points/" + newPoint)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + condToken))
+                .andExpect(status().isForbidden());
+
+        mvc.perform(post("/api/v1/auth/me/points/" + newPoint)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + supToken))
+                .andExpect(status().isNoContent());
+
+        mvc.perform(get("/api/v1/auth/introspect")
+                        .param("monitoringPointId", newPoint.toString())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + supToken))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void healthAndOpenApiArePublic() throws Exception {
         mvc.perform(get("/actuator/health")).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("UP"));
         mvc.perform(get("/v3/api-docs")).andExpect(status().isOk()).andExpect(jsonPath("$.openapi").exists());
