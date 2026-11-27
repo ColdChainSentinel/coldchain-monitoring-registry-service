@@ -81,6 +81,7 @@ resource "terraform_data" "db_roles" {
       REGISTRY_DB_PASSWORD  = random_password.service_db["registry"].result
       TELEMETRY_DB_PASSWORD = random_password.service_db["telemetry"].result
       ALERTS_DB_PASSWORD    = random_password.service_db["alerts"].result
+      IDENTITY_DB_PASSWORD  = random_password.service_db["identity"].result
     }
   }
 

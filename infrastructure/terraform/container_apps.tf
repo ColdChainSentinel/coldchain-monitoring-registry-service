@@ -23,11 +23,38 @@ locals {
   # environment), so apps call each other over HTTPS. Telemetry is external because the simulator Function runs outside the
   # environment and its client only accepts an origin without path.
   internal_url = {
-    for name in ["monitoring-registry", "alert-management"] :
+    for name in ["monitoring-registry", "alert-management", "identity-access"] :
     name => "https://${name}.${azurerm_container_app_environment.main.default_domain}"
   }
 
+  # Every API validates the Bearer session by calling Identity's introspection
+  # endpoint. The client defaults to a 5 s read timeout, shorter than an
+  # Identity cold start from zero replicas, so it reuses the service timeout.
+  auth_env = {
+    IDENTITY_BASE_URL          = local.internal_url["identity-access"]
+    COLDCHAIN_AUTH_READTIMEOUT = var.http_read_timeout
+  }
+
+  # Secret values stay out of java_apps: for_each rejects sensitive values.
+  app_secret_values = {
+    "bootstrap-admin-password" = random_password.bootstrap_admin.result
+  }
+
   java_apps = {
+    "identity-access" = {
+      port          = 8083
+      database      = "identity"
+      external      = false
+      liveness_path = "/actuator/health/liveness"
+      ready_path    = "/actuator/health/readiness"
+      env = {
+        BOOTSTRAP_ADMIN_USERNAME = var.bootstrap_admin_username
+      }
+      # Container Apps secret name => environment variable.
+      secret_env = {
+        "bootstrap-admin-password" = "BOOTSTRAP_ADMIN_PASSWORD"
+      }
+    }
     "monitoring-registry" = {
       port     = 8080
       database = "registry"
@@ -36,7 +63,8 @@ locals {
       # so liveness uses TCP to avoid restarts during database maintenance.
       liveness_path = ""
       ready_path    = "/actuator/health"
-      env           = {}
+      env           = local.auth_env
+      secret_env    = {}
     }
     "telemetry-ingestion" = {
       port          = 8081
@@ -44,11 +72,12 @@ locals {
       external      = true
       liveness_path = "/actuator/health/liveness"
       ready_path    = "/actuator/health/readiness"
-      env = {
+      env = merge(local.auth_env, {
         REGISTRY_BASE_URL = local.internal_url["monitoring-registry"]
         ALERTS_BASE_URL   = local.internal_url["alert-management"]
         HTTP_READ_TIMEOUT = var.http_read_timeout
-      }
+      })
+      secret_env = {}
     }
     "alert-management" = {
       port          = 8082
@@ -56,13 +85,21 @@ locals {
       external      = false
       liveness_path = "/actuator/health/liveness"
       ready_path    = "/actuator/health/readiness"
-      env = {
+      env = merge(local.auth_env, {
         REGISTRY_BASE_URL       = local.internal_url["monitoring-registry"]
         HTTP_READ_TIMEOUT       = var.http_read_timeout
         SPRING_APPLICATION_JSON = local.thermal_rules_json
-      }
+      })
+      secret_env = {}
     }
   }
+}
+
+# Identity creates this ADMIN on its first start (only when the user does not
+# exist yet). Read it with `terraform output -raw bootstrap_admin_password`.
+resource "random_password" "bootstrap_admin" {
+  length  = 24
+  special = false
 }
 
 resource "azurerm_container_app" "java" {
@@ -78,6 +115,14 @@ resource "azurerm_container_app" "java" {
   secret {
     name  = "db-password"
     value = random_password.service_db[each.value.database].result
+  }
+
+  dynamic "secret" {
+    for_each = each.value.secret_env
+    content {
+      name  = secret.key
+      value = local.app_secret_values[secret.key]
+    }
   }
 
   dynamic "secret" {
@@ -135,11 +180,11 @@ resource "azurerm_container_app" "java" {
         name        = "DB_PASSWORD"
         secret_name = "db-password"
       }
-      # B1MS allows ~50 connections; 3 services x 5, doubled during a rollout,
+      # B1MS allows ~50 connections; 4 services x 4, doubled during a rollout,
       # stays below that.
       env {
         name  = "SPRING_DATASOURCE_HIKARI_MAXIMUMPOOLSIZE"
-        value = "5"
+        value = "4"
       }
 
       dynamic "env" {
@@ -147,6 +192,14 @@ resource "azurerm_container_app" "java" {
         content {
           name  = env.key
           value = env.value
+        }
+      }
+
+      dynamic "env" {
+        for_each = each.value.secret_env
+        content {
+          name        = env.value
+          secret_name = env.key
         }
       }
 
@@ -255,6 +308,10 @@ resource "azurerm_container_app" "frontend" {
       env {
         name  = "ALERTS_UPSTREAM"
         value = local.internal_url["alert-management"]
+      }
+      env {
+        name  = "IDENTITY_UPSTREAM"
+        value = local.internal_url["identity-access"]
       }
 
       liveness_probe {

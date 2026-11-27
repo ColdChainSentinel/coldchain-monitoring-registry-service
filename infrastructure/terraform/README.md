@@ -8,7 +8,8 @@ en la [guía de integración](../../docs/architecture/integration-guide.md).
 
 | Recurso | Detalle | Acceso |
 |---|---|---|
-| `frontend` (Container App) | nginx + SPA; proxy de `/registry`, `/telemetry`, `/alerts` | Público HTTPS |
+| `frontend` (Container App) | nginx + SPA; proxy de `/registry`, `/telemetry`, `/alerts`, `/identity` | Público HTTPS |
+| `identity-access` (Container App) | Puerto 8083, base `coldchain_identity`; sesiones, roles y permisos por punto | Interno al entorno (expuesto por el proxy `/identity`) |
 | `monitoring-registry` (Container App) | Puerto 8080, base `coldchain` | Interno al entorno |
 | `telemetry-ingestion` (Container App) | Puerto 8081, base `coldchain_telemetry` | Público HTTPS (lo usa el simulador) |
 | `alert-management` (Container App) | Puerto 8082, base `coldchain_alerts`, reglas por UUID | Interno al entorno |
@@ -21,8 +22,12 @@ suscripción solo permite `brazilsouth`, `northcentralus`, `chilecentral`, `mexi
 y `westus`). Las apps escalan a cero (`min_replicas = 0`).
 
 Cada servicio usa su propio rol de PostgreSQL (`registry_app`, `telemetry_app`,
-`alerts_app`), dueño únicamente de su base; `PUBLIC` no tiene `CONNECT`. Terraform crea
+`alerts_app`, `identity_app`), dueño únicamente de su base; `PUBLIC` no tiene `CONNECT`. Terraform crea
 los roles con `scripts/bootstrap-db-roles.sql` y Flyway crea las tablas al arrancar.
+
+Registry, Telemetry y Alerts exigen un token `Bearer` en `/api/**` y lo validan contra
+`GET /api/v1/auth/introspect` de Identity (`IDENTITY_BASE_URL`). El token es una sesión
+opaca emitida por `POST /api/v1/auth/login`; no hay JWT ni clave de firma compartida.
 
 ## Requisitos
 
@@ -46,15 +51,31 @@ for p in Microsoft.App Microsoft.OperationalInsights Microsoft.DBforPostgreSQL \
    (`rg-coldchain-tfstate`), con autenticación de Entra ID y bloqueo por *lease*; hace falta
    el rol **Storage Blob Data Contributor** sobre la cuenta (ver
    [estado remoto de Terraform](../../docs/architecture/terraform-remote-state.md)).
+
+   Mientras esa migración siga pendiente, el estado vigente es local. Para usarlo sin
+   migrarlo, crear un `backend_override.tf` (ignorado por Git) y ejecutar
+   `terraform init -reconfigure`:
+
+```hcl
+terraform {
+  backend "local" {
+    path = "terraform.tfstate"
+  }
+}
+```
+
 3. Imágenes `linux/amd64` (la etapa de build corre nativa, así que es rápido en ARM):
 
 ```sh
 TAG=$(git rev-parse --short=12 HEAD)
-for app in monitoring-registry telemetry-ingestion alert-management; do
+for app in identity-access monitoring-registry telemetry-ingestion alert-management; do
   docker buildx build --platform linux/amd64 -t ghcr.io/coldchainsentinel/$app:$TAG --push services/$app
 done
 docker buildx build --platform linux/amd64 -t ghcr.io/coldchainsentinel/frontend:$TAG --push frontend
 ```
+
+   Un paquete nuevo de GHCR nace privado: hacerlo público (GitHub → paquete →
+   *Package settings* → *Change visibility*) o configurar `registry_username`/`registry_password`.
 
 4. Infraestructura:
 
@@ -79,10 +100,16 @@ az functionapp deployment source config-zip -g rg-coldchain-dev \
 
 ## Operación
 
-- **Reglas térmicas:** registrar el punto en Registry y declarar su regla en
-  `terraform.tfvars`; `terraform apply` crea una revisión nueva de Alerts sin reconstruir
-  imágenes (se envían como `SPRING_APPLICATION_JSON`). Sin regla, la evaluación devuelve
-  422 `THERMAL_RULE_NOT_CONFIGURED`.
+- **Administrador inicial:** Identity crea el usuario ADMIN `bootstrap_admin_username`
+  (por defecto `admin`) en su primer arranque, solo si no existe. La contraseña la genera
+  Terraform y se guarda como secreto de Container Apps; se lee con
+  `terraform output -raw bootstrap_admin_password`. Cambiarla en Terraform no modifica un
+  usuario ya creado.
+- **Reglas térmicas:** desde HU-09 se configuran en la aplicación
+  (`PUT /alerts/api/alerts/rules/{uuid}`, cualquier rol salvo CONDUCTOR con acceso al punto) y se guardan en la base de
+  Alerts. Las declaradas en `terraform.tfvars` quedan como respaldo cuando el punto no tiene
+  regla en la base; `terraform apply` las envía como `SPRING_APPLICATION_JSON`. Sin ninguna
+  regla, la evaluación devuelve 422 `THERMAL_RULE_NOT_CONFIGURED`.
 
 ```hcl
 thermal_rules = {
@@ -91,11 +118,14 @@ thermal_rules = {
 ```
 
 - **Simulador:** queda deshabilitado por defecto. Para una demo, `simulator_enabled = true`
-  y `simulator_point_id = "<uuid>"`. Cada ejecución despierta las APIs y consume el monto
+  y `simulator_point_id = "<uuid>"`. Inicia sesión como el administrador inicial a través de
+  `<frontend>/identity`; la contraseña solo se carga en la Function mientras el timer está
+  activo. Cada ejecución despierta las APIs y consume el monto
   gratuito: apagarlo al terminar.
 - **Arranque en frío:** con cero réplicas la primera solicitud tras un periodo inactivo
   tarda ~30-60 s (Spring Boot + Flyway). Para una demo, `min_replicas = 1` y volver a `0`
-  después. Las llamadas entre servicios usan `HTTP_READ_TIMEOUT = 45s` por este motivo.
+  después. Las llamadas entre servicios y la validación del token contra Identity
+  (`COLDCHAIN_AUTH_READTIMEOUT`) usan `http_read_timeout = 45s` por este motivo.
 - **Entorno Express:** Azure crea el entorno de Container Apps en modalidad Express. No
   admite HTTP plano (las apps se llaman por HTTPS en `<app>.<dominio-del-entorno>`), no
   tiene `az containerapp logs show` ni reinicio de revisiones (consultar los logs en Log
@@ -107,8 +137,9 @@ thermal_rules = {
 
 ## Riesgos conocidos
 
-- No hay autenticación: el frontend expone públicamente las tres APIs mediante su proxy,
-  incluidos Swagger y Actuator. Acordar controles antes de compartir la URL.
+- Las APIs exigen sesión en `/api/**`, pero Swagger (`/swagger-ui.html`, `/v3/api-docs`) y
+  Actuator (`health`, `info`) siguen públicos a través del proxy del frontend. El login no
+  tiene límite de intentos.
 - PostgreSQL usa acceso público con la regla "servicios de Azure" (`0.0.0.0`), que admite
   conexiones desde cualquier tenant de Azure; la protección son las contraseñas de 32
   caracteres y TLS. Una VNet con acceso privado eliminaría esa exposición.
