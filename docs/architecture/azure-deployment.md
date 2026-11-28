@@ -3,7 +3,9 @@
 Registro del despliegue del MVP de ColdChain Sentinel en la suscripción **Azure for
 Students** (rama `feat/azure-deployment`, 30 de octubre de 2026). Los pasos para repetirlo
 y la operación diaria están en el [README de Terraform](../../infrastructure/terraform/README.md);
-este documento resume qué se hizo, por qué y qué se verificó.
+este documento resume qué se hizo, por qué y qué se verificó. El
+[redespliegue del 27 de noviembre de 2026](#redespliegue-27-de-noviembre-de-2026) actualizó
+el entorno a `develop` e incorporó `identity-access`.
 
 ## Resultado
 
@@ -12,17 +14,18 @@ definida como Terraform en `infrastructure/terraform/`:
 
 | Componente | Servicio de Azure | Acceso |
 |---|---|---|
-| Frontend (nginx + SPA, proxy a las tres APIs) | Container App | Público HTTPS |
-| `monitoring-registry` | Container App | Interno al entorno |
+| Frontend (nginx + SPA, proxy a las cuatro APIs) | Container App | Público HTTPS |
+| `identity-access` | Container App | Público HTTPS (desde el redespliegue) |
+| `monitoring-registry` | Container App | Público HTTPS (interno hasta el redespliegue) |
 | `telemetry-ingestion` | Container App | Público HTTPS (lo usa el simulador) |
-| `alert-management` | Container App | Interno al entorno |
-| Bases `coldchain`, `coldchain_telemetry`, `coldchain_alerts` | PostgreSQL Flexible Server B1MS, v16 | TLS obligatorio |
+| `alert-management` | Container App | Público HTTPS (interno hasta el redespliegue) |
+| Bases `coldchain`, `coldchain_telemetry`, `coldchain_alerts`, `coldchain_identity` | PostgreSQL Flexible Server B1MS, v16 | TLS obligatorio |
 | Simulador de telemetría | Azure Function (Flex Consumption, Python) | Saliente hacia Telemetry |
 | Logs, presupuesto | Log Analytics, presupuesto USD 5 | — |
 
 Las URL públicas se obtienen con `terraform output frontend_url` y
-`terraform output telemetry_url`. No se publican aquí porque el sistema aún no tiene
-autenticación (ver [riesgos](#riesgos-abiertos)).
+`terraform output telemetry_url`. Desde el redespliegue, las APIs exigen una sesión de
+Identity en `/api/**` (ver [riesgos](#riesgos-abiertos)).
 
 ## Decisiones
 
@@ -91,9 +94,64 @@ El cambio de infraestructura con credenciales, firewall e ingreso público (`10b
 una revisión de riesgo y resiliencia: aprobada, sin bloqueos y con 8 observaciones no
 bloqueantes; de ellas se aplicaron la liveness por TCP de Registry y el límite del pool.
 
+## Redespliegue (27 de noviembre de 2026)
+
+Actualización del entorno a `origin/develop` en `f704e82` (PR #13), desde la rama
+`chore/azure-redeploy-develop`. Incluye EP-01 (servicio `identity-access`: sesiones, roles y
+permisos por punto), HU-06 (dispositivos) y HU-09 (rangos térmicos configurables).
+
+- **Imágenes:** `ghcr.io/coldchainsentinel/<app>:f704e82737b5` (`linux/amd64`) para las cinco
+  apps. El paquete nuevo `identity-access` se hizo público; las cinco admiten descarga
+  anónima.
+- **Recursos nuevos:** Container App `identity-access` (puerto 8083), base
+  `coldchain_identity` con el rol `identity_app` (mismo patrón: dueño de su base y de su
+  esquema `public`, sin `CONNECT` para `PUBLIC`), contraseña de base y contraseña del
+  administrador inicial generadas por Terraform y guardadas como secretos de Container Apps.
+- **Cambios en recursos existentes:** imágenes nuevas; `IDENTITY_BASE_URL` y
+  `COLDCHAIN_AUTH_READTIMEOUT` en Registry, Telemetry y Alerts; `IDENTITY_UPSTREAM` en el
+  frontend; pool Hikari de 4 conexiones (cuatro servicios en B1MS); sonda de liveness del
+  frontend en el puerto 8080; ingreso externo en Registry, Alerts e Identity; ajustes del
+  simulador para iniciar sesión (sigue deshabilitado); regla de firewall del operador
+  actualizada a su IP actual.
+- **Migraciones aplicadas por Flyway al arrancar:** Identity V1, Registry V2 (dispositivos y
+  estado del punto) y Alerts V2 (reglas térmicas en base de datos).
+- **Estado de Terraform:** se siguió usando el estado local (migración al backend remoto
+  pendiente) mediante un `backend_override.tf` ignorado por Git. Se respaldó antes y después
+  del cambio fuera del repositorio.
+
+### Incidentes
+
+- **Ingreso interno inaccesible en Express:** tras el primer `apply`, el proxy del frontend
+  y las llamadas entre servicios (incluida la validación de sesiones) recibían
+  `404 {"error":"Not found"}` del borde de Azure, con las apps internas en ejecución. Todos
+  los nombres `<app>.<dominio>` resuelven al mismo borde público y este ya no enruta hacia
+  apps internas. Se activó el ingreso externo de Registry, Alerts e Identity: las rutas ya
+  eran públicas mediante el proxy y `/api/**` exige sesión.
+- **Sonda del frontend en el puerto 80:** `develop` cambió la imagen a nginx sin privilegios
+  (puerto 8080) y el destino del ingreso, pero no la sonda de liveness; se corrigió antes de
+  aplicar para evitar reinicios.
+
+### Verificación
+
+| Verificación | Resultado |
+|---|---|
+| Pruebas | `mvnw -Pacceptance verify`: 225 pruebas (32 Registry, 93 Telemetry, 94 Alerts, 6 Identity); integración con PostgreSQL: 28; frontend: 65 pruebas y build correctos |
+| Plan inicial | 6 por crear, 5 por cambiar en sitio, 2 por destruir (regla de firewall antigua y `terraform_data.db_roles`, que se vuelve a ejecutar); sin reemplazos de recursos con estado |
+| Plan posterior | Solo el diff cosmético `transport = "HTTP"` de las sondas |
+| Revisiones | Las cinco apps con la imagen `f704e82737b5`, revisión `Healthy` y `Running` |
+| Frontend y salud por el proxy | `/` 200; `/identity`, `/registry`, `/telemetry` y `/alerts` `/actuator/health` en `UP` (~60 s en frío) |
+| Inicio de sesión | `admin` (ADMIN) 200; contraseña incorrecta 401 |
+| Sin token o token inválido | 401 en Registry, Alerts y Telemetry |
+| Con token | Puntos (CAM-DEMO-01 intacto), dispositivos HU-06, regla HU-09 (2-8 °C), alertas y mediciones responden 200; validaciones devuelven 400 |
+| Flujo completo | Medición de 5 °C en CAM-DEMO-01: 201 con evaluación `COMPLETED` |
+| Cierre de sesión | 204; el token revocado recibe 401 |
+| Costos | `min_replicas = 0` y simulador deshabilitado |
+
 ## Riesgos abiertos
 
-- Sin autenticación: el frontend expone las tres APIs, incluidos Swagger y Actuator.
+- Las cuatro APIs tienen ingreso público propio y exponen Swagger y Actuator (`health`,
+  `info`) sin sesión; `/api/**` exige sesión. El login no limita intentos. Un entorno con VNet
+  y sin modalidad Express permitiría volver al ingreso interno.
 - PostgreSQL acepta conexiones desde servicios de Azure de cualquier tenant; la protección
   son contraseñas de 32 caracteres y TLS. Una VNet con acceso privado lo eliminaría.
 - JDBC usa `sslmode=require`: cifra, pero no valida el certificado del servidor.

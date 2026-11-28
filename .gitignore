@@ -25,5 +25,10 @@ config/alerts/thermal-rules.yml
 *.tfplan
 *.tfvars
 backend.hcl
+# Local overrides (e.g. a local backend while the remote state migration is pending)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
 !*.tfvars.example
 .claude

@@ -46,8 +46,13 @@ resource "azurerm_function_app_flex_consumption" "simulator" {
   maximum_instance_count      = 40
   instance_memory_in_mb       = 512
 
-  app_settings = {
+  # Telemetry requires a Bearer session, so the simulator logs in through the
+  # frontend proxy (Identity is internal). The admin password is only stored
+  # while the timer is active.
+  app_settings = merge({
     TELEMETRY_BASE_URL    = "https://${azurerm_container_app.java["telemetry-ingestion"].ingress[0].fqdn}"
+    IDENTITY_BASE_URL     = "https://${azurerm_container_app.frontend.ingress[0].fqdn}/identity"
+    SIMULATOR_USERNAME    = var.bootstrap_admin_username
     MONITORING_POINT_ID   = var.simulator_point_id
     SIMULATED_TEMPERATURE = tostring(var.simulator_temperature)
     SIMULATOR_DRY_RUN     = "false"
@@ -56,7 +61,9 @@ resource "azurerm_function_app_flex_consumption" "simulator" {
     HTTP_TIMEOUT_SECONDS = "30"
     # The timer stays disabled until a real monitoring point is configured.
     "AzureWebJobs.emit_measurement.Disabled" = local.simulator_active ? "false" : "true"
-  }
+    }, local.simulator_active ? {
+    SIMULATOR_PASSWORD = random_password.bootstrap_admin.result
+  } : {})
 
   site_config {}
 

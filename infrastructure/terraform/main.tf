@@ -10,6 +10,7 @@ locals {
     registry  = { name = "coldchain", role = "registry_app" }
     telemetry = { name = "coldchain_telemetry", role = "telemetry_app" }
     alerts    = { name = "coldchain_alerts", role = "alerts_app" }
+    identity  = { name = "coldchain_identity", role = "identity_app" }
   }
 }
 

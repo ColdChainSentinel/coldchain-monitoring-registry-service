@@ -18,25 +18,55 @@ locals {
     }
   })
 
-  # Express environments reject plain-HTTP ingress and give internal apps the
-  # same <app>.<default_domain> FQDN (reachable only from inside the
-  # environment), so apps call each other over HTTPS. Telemetry is external because the simulator Function runs outside the
-  # environment and its client only accepts an origin without path.
-  internal_url = {
-    for name in ["monitoring-registry", "alert-management"] :
+  # Express environments reject plain-HTTP ingress and publish every app as
+  # <app>.<default_domain> on a shared public edge. As of 2026-11-27 that
+  # edge answers 404 for internal-only apps even when the caller runs inside
+  # the environment, so every API uses external ingress and apps call each
+  # other over HTTPS. The frontend proxy already exposed the same paths; the
+  # APIs require an Identity session on /api/**.
+  app_url = {
+    for name in ["monitoring-registry", "alert-management", "identity-access"] :
     name => "https://${name}.${azurerm_container_app_environment.main.default_domain}"
   }
 
+  # Every API validates the Bearer session by calling Identity's introspection
+  # endpoint. The client defaults to a 5 s read timeout, shorter than an
+  # Identity cold start from zero replicas, so it reuses the service timeout.
+  auth_env = {
+    IDENTITY_BASE_URL          = local.app_url["identity-access"]
+    COLDCHAIN_AUTH_READTIMEOUT = var.http_read_timeout
+  }
+
+  # Secret values stay out of java_apps: for_each rejects sensitive values.
+  app_secret_values = {
+    "bootstrap-admin-password" = random_password.bootstrap_admin.result
+  }
+
   java_apps = {
+    "identity-access" = {
+      port          = 8083
+      database      = "identity"
+      external      = true
+      liveness_path = "/actuator/health/liveness"
+      ready_path    = "/actuator/health/readiness"
+      env = {
+        BOOTSTRAP_ADMIN_USERNAME = var.bootstrap_admin_username
+      }
+      # Container Apps secret name => environment variable.
+      secret_env = {
+        "bootstrap-admin-password" = "BOOTSTRAP_ADMIN_PASSWORD"
+      }
+    }
     "monitoring-registry" = {
       port     = 8080
       database = "registry"
-      external = false
+      external = true
       # Registry has no liveness group and /actuator/health includes the DB,
       # so liveness uses TCP to avoid restarts during database maintenance.
       liveness_path = ""
       ready_path    = "/actuator/health"
-      env           = {}
+      env           = local.auth_env
+      secret_env    = {}
     }
     "telemetry-ingestion" = {
       port          = 8081
@@ -44,25 +74,34 @@ locals {
       external      = true
       liveness_path = "/actuator/health/liveness"
       ready_path    = "/actuator/health/readiness"
-      env = {
-        REGISTRY_BASE_URL = local.internal_url["monitoring-registry"]
-        ALERTS_BASE_URL   = local.internal_url["alert-management"]
+      env = merge(local.auth_env, {
+        REGISTRY_BASE_URL = local.app_url["monitoring-registry"]
+        ALERTS_BASE_URL   = local.app_url["alert-management"]
         HTTP_READ_TIMEOUT = var.http_read_timeout
-      }
+      })
+      secret_env = {}
     }
     "alert-management" = {
       port          = 8082
       database      = "alerts"
-      external      = false
+      external      = true
       liveness_path = "/actuator/health/liveness"
       ready_path    = "/actuator/health/readiness"
-      env = {
-        REGISTRY_BASE_URL       = local.internal_url["monitoring-registry"]
+      env = merge(local.auth_env, {
+        REGISTRY_BASE_URL       = local.app_url["monitoring-registry"]
         HTTP_READ_TIMEOUT       = var.http_read_timeout
         SPRING_APPLICATION_JSON = local.thermal_rules_json
-      }
+      })
+      secret_env = {}
     }
   }
+}
+
+# Identity creates this ADMIN on its first start (only when the user does not
+# exist yet). Read it with `terraform output -raw bootstrap_admin_password`.
+resource "random_password" "bootstrap_admin" {
+  length  = 24
+  special = false
 }
 
 resource "azurerm_container_app" "java" {
@@ -78,6 +117,14 @@ resource "azurerm_container_app" "java" {
   secret {
     name  = "db-password"
     value = random_password.service_db[each.value.database].result
+  }
+
+  dynamic "secret" {
+    for_each = each.value.secret_env
+    content {
+      name  = secret.key
+      value = local.app_secret_values[secret.key]
+    }
   }
 
   dynamic "secret" {
@@ -135,11 +182,11 @@ resource "azurerm_container_app" "java" {
         name        = "DB_PASSWORD"
         secret_name = "db-password"
       }
-      # B1MS allows ~50 connections; 3 services x 5, doubled during a rollout,
+      # B1MS allows ~50 connections; 4 services x 4, doubled during a rollout,
       # stays below that.
       env {
         name  = "SPRING_DATASOURCE_HIKARI_MAXIMUMPOOLSIZE"
-        value = "5"
+        value = "4"
       }
 
       dynamic "env" {
@@ -147,6 +194,14 @@ resource "azurerm_container_app" "java" {
         content {
           name  = env.key
           value = env.value
+        }
+      }
+
+      dynamic "env" {
+        for_each = each.value.secret_env
+        content {
+          name        = env.value
+          secret_name = env.key
         }
       }
 
@@ -246,7 +301,7 @@ resource "azurerm_container_app" "frontend" {
 
       env {
         name  = "REGISTRY_UPSTREAM"
-        value = local.internal_url["monitoring-registry"]
+        value = local.app_url["monitoring-registry"]
       }
       env {
         name  = "TELEMETRY_UPSTREAM"
@@ -254,12 +309,17 @@ resource "azurerm_container_app" "frontend" {
       }
       env {
         name  = "ALERTS_UPSTREAM"
-        value = local.internal_url["alert-management"]
+        value = local.app_url["alert-management"]
+      }
+      env {
+        name  = "IDENTITY_UPSTREAM"
+        value = local.app_url["identity-access"]
       }
 
+      # The unprivileged nginx image listens on 8080, like the ingress target.
       liveness_probe {
         transport = "HTTP"
-        port      = 80
+        port      = 8080
         path      = "/"
       }
     }
