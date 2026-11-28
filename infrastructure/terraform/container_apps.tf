@@ -18,11 +18,13 @@ locals {
     }
   })
 
-  # Express environments reject plain-HTTP ingress and give internal apps the
-  # same <app>.<default_domain> FQDN (reachable only from inside the
-  # environment), so apps call each other over HTTPS. Telemetry is external because the simulator Function runs outside the
-  # environment and its client only accepts an origin without path.
-  internal_url = {
+  # Express environments reject plain-HTTP ingress and publish every app as
+  # <app>.<default_domain> on a shared public edge. As of 2026-11-27 that
+  # edge answers 404 for internal-only apps even when the caller runs inside
+  # the environment, so every API uses external ingress and apps call each
+  # other over HTTPS. The frontend proxy already exposed the same paths; the
+  # APIs require an Identity session on /api/**.
+  app_url = {
     for name in ["monitoring-registry", "alert-management", "identity-access"] :
     name => "https://${name}.${azurerm_container_app_environment.main.default_domain}"
   }
@@ -31,7 +33,7 @@ locals {
   # endpoint. The client defaults to a 5 s read timeout, shorter than an
   # Identity cold start from zero replicas, so it reuses the service timeout.
   auth_env = {
-    IDENTITY_BASE_URL          = local.internal_url["identity-access"]
+    IDENTITY_BASE_URL          = local.app_url["identity-access"]
     COLDCHAIN_AUTH_READTIMEOUT = var.http_read_timeout
   }
 
@@ -44,7 +46,7 @@ locals {
     "identity-access" = {
       port          = 8083
       database      = "identity"
-      external      = false
+      external      = true
       liveness_path = "/actuator/health/liveness"
       ready_path    = "/actuator/health/readiness"
       env = {
@@ -58,7 +60,7 @@ locals {
     "monitoring-registry" = {
       port     = 8080
       database = "registry"
-      external = false
+      external = true
       # Registry has no liveness group and /actuator/health includes the DB,
       # so liveness uses TCP to avoid restarts during database maintenance.
       liveness_path = ""
@@ -73,8 +75,8 @@ locals {
       liveness_path = "/actuator/health/liveness"
       ready_path    = "/actuator/health/readiness"
       env = merge(local.auth_env, {
-        REGISTRY_BASE_URL = local.internal_url["monitoring-registry"]
-        ALERTS_BASE_URL   = local.internal_url["alert-management"]
+        REGISTRY_BASE_URL = local.app_url["monitoring-registry"]
+        ALERTS_BASE_URL   = local.app_url["alert-management"]
         HTTP_READ_TIMEOUT = var.http_read_timeout
       })
       secret_env = {}
@@ -82,11 +84,11 @@ locals {
     "alert-management" = {
       port          = 8082
       database      = "alerts"
-      external      = false
+      external      = true
       liveness_path = "/actuator/health/liveness"
       ready_path    = "/actuator/health/readiness"
       env = merge(local.auth_env, {
-        REGISTRY_BASE_URL       = local.internal_url["monitoring-registry"]
+        REGISTRY_BASE_URL       = local.app_url["monitoring-registry"]
         HTTP_READ_TIMEOUT       = var.http_read_timeout
         SPRING_APPLICATION_JSON = local.thermal_rules_json
       })
@@ -299,7 +301,7 @@ resource "azurerm_container_app" "frontend" {
 
       env {
         name  = "REGISTRY_UPSTREAM"
-        value = local.internal_url["monitoring-registry"]
+        value = local.app_url["monitoring-registry"]
       }
       env {
         name  = "TELEMETRY_UPSTREAM"
@@ -307,11 +309,11 @@ resource "azurerm_container_app" "frontend" {
       }
       env {
         name  = "ALERTS_UPSTREAM"
-        value = local.internal_url["alert-management"]
+        value = local.app_url["alert-management"]
       }
       env {
         name  = "IDENTITY_UPSTREAM"
-        value = local.internal_url["identity-access"]
+        value = local.app_url["identity-access"]
       }
 
       # The unprivileged nginx image listens on 8080, like the ingress target.

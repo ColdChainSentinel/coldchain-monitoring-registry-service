@@ -9,10 +9,10 @@ en la [guía de integración](../../docs/architecture/integration-guide.md).
 | Recurso | Detalle | Acceso |
 |---|---|---|
 | `frontend` (Container App) | nginx + SPA; proxy de `/registry`, `/telemetry`, `/alerts`, `/identity` | Público HTTPS |
-| `identity-access` (Container App) | Puerto 8083, base `coldchain_identity`; sesiones, roles y permisos por punto | Interno al entorno (expuesto por el proxy `/identity`) |
-| `monitoring-registry` (Container App) | Puerto 8080, base `coldchain` | Interno al entorno |
+| `identity-access` (Container App) | Puerto 8083, base `coldchain_identity`; sesiones, roles y permisos por punto | Público HTTPS (también por el proxy `/identity`) |
+| `monitoring-registry` (Container App) | Puerto 8080, base `coldchain` | Público HTTPS (también por el proxy `/registry`) |
 | `telemetry-ingestion` (Container App) | Puerto 8081, base `coldchain_telemetry` | Público HTTPS (lo usa el simulador) |
-| `alert-management` (Container App) | Puerto 8082, base `coldchain_alerts`, reglas por UUID | Interno al entorno |
+| `alert-management` (Container App) | Puerto 8082, base `coldchain_alerts`, reglas por UUID | Público HTTPS (también por el proxy `/alerts`) |
 | PostgreSQL Flexible Server | B1MS, PostgreSQL 16, 32 GB, TLS obligatorio | Servicios de Azure + IP del operador |
 | Function `telemetry-simulator` | Flex Consumption, Python 3.12, timer | Saliente hacia Telemetry |
 | Log Analytics, Container Apps Environment, Storage, presupuesto | Soporte | — |
@@ -127,7 +127,9 @@ thermal_rules = {
   después. Las llamadas entre servicios y la validación del token contra Identity
   (`COLDCHAIN_AUTH_READTIMEOUT`) usan `http_read_timeout = 45s` por este motivo.
 - **Entorno Express:** Azure crea el entorno de Container Apps en modalidad Express. No
-  admite HTTP plano (las apps se llaman por HTTPS en `<app>.<dominio-del-entorno>`), no
+  admite HTTP plano (las apps se llaman por HTTPS en `<app>.<dominio-del-entorno>`) y, al
+  27 de noviembre de 2026, su borde responde 404 a las apps con ingreso interno aunque la llamada
+  salga del mismo entorno; por eso todas las APIs usan ingreso externo. Tampoco
   tiene `az containerapp logs show` ni reinicio de revisiones (consultar los logs en Log
   Analytics, tabla `ContainerAppConsoleLogs_CL`) y un cambio de configuración se aplica
   cuando la réplica vuelve a arrancar, normalmente después de escalar a cero (~5 min sin
@@ -137,6 +139,9 @@ thermal_rules = {
 
 ## Riesgos conocidos
 
+- Las cuatro APIs tienen ingreso público propio (ver *Entorno Express*), además del proxy
+  del frontend. Un entorno con VNet y sin modalidad Express permitiría volver al ingreso
+  interno.
 - Las APIs exigen sesión en `/api/**`, pero Swagger (`/swagger-ui.html`, `/v3/api-docs`) y
   Actuator (`health`, `info`) siguen públicos a través del proxy del frontend. El login no
   tiene límite de intentos.
